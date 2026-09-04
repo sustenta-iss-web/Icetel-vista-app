@@ -23,36 +23,36 @@ const TarjetaSala = ({ datos, onClick }) => {
   return (
     <button
       onClick={() => onClick(datos)}
-      className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left cursor-pointer"
+      className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left cursor-pointer overflow-hidden"
     >
-      <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
-        <h2 className="text-xl font-bold text-slate-800">{datos.nombre}</h2>
-        <div className="text-sm font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md">
+      <div className="flex justify-between items-center mb-1.5 border-b border-slate-100 pb-1.5">
+        <h2 className="text-sm font-bold text-slate-800 truncate">{datos.nombre}</h2>
+        <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
           Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° (Temp)</p>
-          <p className="text-lg font-semibold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
+      <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+        <div className="bg-blue-50/50 p-1.5 rounded-lg border border-blue-100/50">
+          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
+          <p className="text-sm font-semibold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
         </div>
-        <div className="bg-cyan-50/50 p-3 rounded-xl border border-cyan-100/50">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H% (Humedad)</p>
-          <p className="text-lg font-semibold text-cyan-600">{fmt(datos.humedad, '%')}</p>
+        <div className="bg-cyan-50/50 p-1.5 rounded-lg border border-cyan-100/50">
+          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
+          <p className="text-sm font-semibold text-cyan-600">{fmt(datos.humedad, '%')}</p>
         </div>
-        <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100/50">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Kw (Frigorífico)</p>
-          <p className="text-lg font-semibold text-purple-600">{fmt(datos.kw)}</p>
+        <div className="bg-purple-50/50 p-1.5 rounded-lg border border-purple-100/50">
+          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Kw</p>
+          <p className="text-sm font-semibold text-purple-600">{fmt(datos.kw)}</p>
         </div>
-        <div className="bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
-          <p className="text-lg font-semibold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
+        <div className="bg-orange-50/50 p-1.5 rounded-lg border border-orange-100/50">
+          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
+          <p className="text-sm font-semibold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
         </div>
       </div>
 
-      <div className={`mt-auto text-center py-2 rounded-lg text-sm font-bold border ${obtenerEstiloCondicion(datos.condicion)}`}>
-        Condición: {datos.condicion || 'Sin datos'}
+      <div className={`mt-auto text-center py-1 rounded-md text-[11px] font-bold border ${obtenerEstiloCondicion(datos.condicion)}`}>
+        {datos.condicion || 'Sin datos'}
       </div>
     </button>
   );
@@ -175,11 +175,11 @@ const IcetelProgramaVista = () => {
   const salasEnPantalla = salas.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 flex flex-col font-sans">
-      <header className="mb-6 flex justify-between items-end">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 p-4 flex flex-col font-sans">
+      <header className="mb-3 flex justify-between items-end shrink-0">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
-          <p className="text-slate-500 font-medium mt-1 transition-all">
+          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
+          <p className="text-slate-500 text-sm font-medium mt-0.5 transition-all">
             {salas.length > 0
               ? `Mostrando salas ${indiceInicio + 1} a ${Math.min(indiceFin, salas.length)} de ${salas.length}`
               : cargando ? 'Cargando datos...' : 'Sin salas para mostrar'}
@@ -195,12 +195,12 @@ const IcetelProgramaVista = () => {
       </header>
 
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+        <div className="mb-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-2 shrink-0">
           No se pudieron cargar los datos de la planilla: {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 flex-grow content-start">
+      <div className="grid grid-cols-5 grid-rows-2 gap-3 flex-1 min-h-0">
         {salasEnPantalla.map((sala) => (
           <TarjetaSala key={sala.id} datos={sala} onClick={setSalaSeleccionada} />
         ))}
