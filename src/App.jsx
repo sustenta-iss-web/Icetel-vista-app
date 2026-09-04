@@ -82,7 +82,6 @@ const TarjetaEnergia = ({ datos }) => (
   <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left overflow-hidden">
     <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
       <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'UPS Desconocida'}</h2>
-      {/* KVA Inicio reubicado a la derecha del nombre */}
       <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
         KVA: <span className="text-slate-700 font-bold">{fmt(datos.kvaInicio)}</span>
       </div>
@@ -90,8 +89,8 @@ const TarjetaEnergia = ({ datos }) => (
 
     <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
       <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KVA Término</p>
-        <p className="text-xl font-bold text-indigo-600">{fmt(datos.kvaTermino, ' KW')}</p>
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KW</p>
+        <p className="text-xl font-bold text-indigo-600">{fmt(datos.kvaTermino)}</p>
       </div>
       <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Porcentaje Carga</p>
