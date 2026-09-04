@@ -8,27 +8,43 @@ const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s (carrusel)
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
-// --- FUNCIÓN BLINDADA PARA DECIMALES LARGOS Y PERIODICOS ---
+// --- FUNCIÓN BLINDADA PARA PORCENTAJES CON DECIMALES PERIÓDICOS ---
 const fmtPorcentaje = (valor) => {
   if (valor === null || valor === undefined || valor === '') return '—';
   
   if (typeof valor === 'number') {
-    return `${valor.toFixed(1)}%`;
+    let num = valor;
+    if (num > 100) {
+      let s_dig = String(Math.floor(num));
+      if (s_dig.length >= 3) {
+        num = Number(s_dig.slice(0, 2) + '.' + s_dig.slice(2));
+      }
+    }
+    return `${num.toFixed(1)}%`;
   }
   
   try {
     let s = String(valor).trim().replace(/\s+/g, '');
-    // Reemplazamos todas las comas por puntos
-    let normalized = s.replace(/,/g, '.');
     
-    // Si hay múltiples puntos decimales (ej: "22.181.818..."), dejamos el primero y unimos el resto como decimales
-    const parts = normalized.split('.');
+    // Normalizar comas y puntos decimales
+    s = s.replace(/,/g, '.');
+    
+    const parts = s.split('.');
     if (parts.length > 2) {
-      normalized = parts[0] + '.' + parts.slice(1).join('');
+      s = parts[0] + '.' + parts.slice(1).join('');
     }
 
-    const num = Number(normalized);
+    let num = Number(s);
     if (isNaN(num)) return '—';
+
+    // Si el número es mayor a 100 debido a decimales largos pegados (ej: 22181818181)
+    if (num > 100) {
+      let s_dig = String(Math.floor(num));
+      if (s_dig.length >= 3) {
+        num = Number(s_dig.slice(0, 2) + '.' + s_dig.slice(2));
+      }
+    }
+
     return `${num.toFixed(1)}%`;
   } catch (e) {
     return '—';
