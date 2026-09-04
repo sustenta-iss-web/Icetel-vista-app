@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // --- CONFIGURACIÓN ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVRISt9dGOt0lXWimGVCkH2jLmWKHL1h-CLNEBymE6Q9gp_WOeJzTTUh6cKjqynBms/exec';
 const ITEMS_POR_PAGINA = 6; 
 const INTERVALO_DATOS_MS = 15000; 
 const INTERVALO_PAGINA_MS = 15000; 
