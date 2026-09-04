@@ -89,61 +89,39 @@ const TarjetaClima = ({ datos, onClick }) => (
         Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
       </div>
     </div>
+    
     <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
+      {/* Temperatura */}
       <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
         <p className="text-xl font-bold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
       </div>
+      
+      {/* Humedad */}
       <div className="bg-cyan-50/50 p-2 rounded-lg border border-cyan-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
         <p className="text-xl font-bold text-cyan-600">{fmt(datos.humedad, '%')}</p>
       </div>
+      
+      {/* KWF */}
       <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
         <p className="text-xl font-bold text-purple-600">{fmt(datos.kw)}</p>
-        {/* Nuevo indicador de Porcentaje Operativo basado en los circuitos */}
         {datos.porcentajeOperativo !== undefined && (
           <p className="text-[9px] font-bold text-purple-500/80 mt-0.5">
             {fmtPorcentaje(datos.porcentajeOperativo)} Operativo
           </p>
         )}
       </div>
+      
+      {/* Carga TI (Calculada desde la hoja KwF-KwTI) */}
       <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
-        <p className="text-xl font-bold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
+        <p className="text-xl font-bold text-orange-600">{fmtPorcentaje(datos.cargaTi)}</p>
       </div>
     </div>
   </button>
 );
-
-
-// --- TARJETA CHILLER (Ch01 y Ch02 juntos en Panel 3) ---
-const TarjetaChiller = ({ datos }) => {
-  const statusList = datos.statusCompresores || [];
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left overflow-hidden">
-      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
-        <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'Chiller'}</h2>
-        <div className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md whitespace-nowrap flex gap-1">
-          <span>Comp:</span>
-          {statusList.length > 0 ? statusList.map((st, idx) => (
-            <span key={idx} className="font-bold text-slate-700">[{st || '—'}]</span>
-          )) : <span className="text-slate-400">—</span>}
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        <div className="bg-teal-50/50 p-2 rounded-lg border border-teal-100/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Surtidor</p>
-          <p className="text-xl font-bold text-teal-600">{fmt(datos.tempSurtidor, '°C')}</p>
-        </div>
-        <div className="bg-sky-50/50 p-2 rounded-lg border border-sky-100/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Retorno</p>
-          <p className="text-xl font-bold text-sky-600">{fmt(datos.tempRetorno, '°C')}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // --- TARJETA ENERGÍA (UPS) ---
 const TarjetaEnergia = ({ datos }) => (
