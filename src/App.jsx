@@ -8,23 +8,26 @@ const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s (carrusel)
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
-// --- FUNCIÓN BLINDADA PARA LIMPIAR Y FORMATEAR DECIMALES LARGOS ---
+// --- FUNCIÓN BLINDADA PARA DECIMALES LARGOS Y PERIODICOS ---
 const fmtPorcentaje = (valor) => {
   if (valor === null || valor === undefined || valor === '') return '—';
   
+  if (typeof valor === 'number') {
+    return `${valor.toFixed(1)}%`;
+  }
+  
   try {
-    // Convertimos a texto para limpiar posibles comas o puntos repetidos
-    let valStr = String(valor).trim();
+    let s = String(valor).trim().replace(/\s+/g, '');
+    // Reemplazamos todas las comas por puntos
+    let normalized = s.replace(/,/g, '.');
     
-    // Si viene con múltiples comas (ej: "22,181,818..."), asumimos que la primera coma es el separador decimal
-    // y removemos o unimos el resto correctamente.
-    valStr = valStr.replace(',', '.');
-    const partes = valStr.split('.');
-    if (partes.length > 2) {
-      valStr = partes[0] + '.' + partes.slice(1).join('');
+    // Si hay múltiples puntos decimales (ej: "22.181.818..."), dejamos el primero y unimos el resto como decimales
+    const parts = normalized.split('.');
+    if (parts.length > 2) {
+      normalized = parts[0] + '.' + parts.slice(1).join('');
     }
 
-    const num = Number(valStr);
+    const num = Number(normalized);
     if (isNaN(num)) return '—';
     return `${num.toFixed(1)}%`;
   } catch (e) {
