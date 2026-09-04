@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 // --- CONFIGURACIÓN ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
-const ITEMS_POR_PAGINA = 6; // 6 para clima, 6 para energía
+const ITEMS_POR_PAGINA = 6; // 6 elementos por panel (3 arriba, 3 abajo)
 const INTERVALO_DATOS_MS = 15000; // Refresca datos cada 15s
-const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s
+const INTERVALO_PAGINA_MS = 15000; // Cambia de panel cada 15s (carrusel)
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
@@ -110,7 +110,7 @@ const TarjetaClima = ({ datos, onClick }) => (
   </button>
 );
 
-// --- TARJETA CHILLER (Nuevo KPI de Clima) ---
+// --- TARJETA CHILLER (Ch01 y Ch02 en Panel 3) ---
 const TarjetaChiller = ({ datos }) => {
   const statusList = datos.statusCompresores || [];
   return (
@@ -176,10 +176,17 @@ const IcetelProgramaVista = () => {
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Error desconocido del backend');
       
-      // Combinamos las salas de clima y los chillers en una sola lista para el apartado Clima
       const salas = json.salas || [];
       const chillers = json.chillers || [];
-      const climaCombinado = [...salas, ...chillers];
+
+      // Organizamos los elementos para que los chillers queden exactamente 
+      // al inicio del Panel 3 (índice 12, asumiendo 6 elementos por página)
+      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; // 12
+      const salasPanel1y2 = salas.slice(0, indiceInicioPanel3);
+      const salasRestantes = salas.slice(indiceInicioPanel3);
+
+      // Combinación ordenada: 12 salas -> Chiller 1 y Chiller 2 -> Resto de salas
+      const climaCombinado = [...salasPanel1y2, ...chillers, ...salasRestantes];
 
       setDatosClima(climaCombinado);
       setDatosEnergia(json.energia || json.ups || []);
