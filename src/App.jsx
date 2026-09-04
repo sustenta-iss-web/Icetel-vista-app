@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 // --- CONFIGURACIÓN ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
+const ITEMS_POR_PAGINA = 6; // 6 para clima, 6 para energía
+const INTERVALO_DATOS_MS = 15000; // Refresca datos cada 15s
+const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s (carrusel)
 
-// Ayudante para formatear números
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
 // --- MODAL DE DETALLE DE EQUIPOS (Para Clima) ---
@@ -42,59 +44,64 @@ const ModalEquipos = ({ sala, onClose }) => {
   );
 };
 
-// --- COMPONENTE: TARJETA CLIMA (Izquierda) ---
+// --- TARJETA CLIMA (Lado Izquierdo) ---
 const TarjetaClima = ({ datos, onClick }) => (
   <button 
     onClick={() => onClick(datos)}
-    className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 flex flex-col justify-between h-full hover:shadow-md transition-shadow text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
+    className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full hover:shadow-md transition-shadow text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 w-full overflow-hidden"
   >
-    <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
+    <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
       <h2 className="text-sm font-bold text-slate-800 truncate">{datos.nombre || 'Sala Desconocida'}</h2>
+      <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+        Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
+      </div>
     </div>
-    <div className="grid grid-cols-2 gap-2 flex-1">
-      <div className="bg-blue-50 p-2 rounded-lg text-center flex flex-col justify-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400">T°</p>
-        <p className="text-lg font-semibold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
+    <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
+      <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 flex flex-col justify-center text-center">
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
+        <p className="text-xl font-bold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
       </div>
-      <div className="bg-cyan-50 p-2 rounded-lg text-center flex flex-col justify-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400">H%</p>
-        <p className="text-lg font-semibold text-cyan-600">{fmt(datos.humedad, '%')}</p>
+      <div className="bg-cyan-50/50 p-2 rounded-lg border border-cyan-100/50 flex flex-col justify-center text-center">
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
+        <p className="text-xl font-bold text-cyan-600">{fmt(datos.humedad, '%')}</p>
       </div>
-      <div className="bg-purple-50 p-2 rounded-lg text-center flex flex-col justify-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400">Kw</p>
-        <p className="text-lg font-semibold text-purple-600">{fmt(datos.kw)}</p>
+      <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center text-center">
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Kw</p>
+        <p className="text-xl font-bold text-purple-600">{fmt(datos.kw)}</p>
       </div>
-      <div className="bg-orange-50 p-2 rounded-lg text-center flex flex-col justify-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400">Carga TI</p>
-        <p className="text-lg font-semibold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
+      <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center text-center">
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
+        <p className="text-xl font-bold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
       </div>
     </div>
   </button>
 );
 
-// --- COMPONENTE: TARJETA ENERGÍA (Derecha) ---
+// --- TARJETA ENERGÍA (Lado Derecho - UPS) ---
 const TarjetaEnergia = ({ datos }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col justify-between h-full">
-    <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
-      {/* Muestra el nombre desde la columna Equipo */}
-      <h2 className="text-base font-bold text-slate-800 truncate">{datos.equipo || datos.nombre || 'UPS Desconocida'}</h2>
-    </div>
-    <div className="grid grid-cols-2 gap-3 flex-grow">
-      <div className="bg-indigo-50 flex flex-col items-center justify-center p-3 rounded-xl border border-indigo-100">
-        <p className="text-xs uppercase font-bold text-slate-400 mb-1">KVA</p>
-        {/* Lee kvaInicio desde el backend */}
-        <p className="text-2xl font-bold text-indigo-600">{fmt(datos.kvaInicio || datos.kva)}</p>
+  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left overflow-hidden">
+    <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
+      <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'UPS Desconocida'}</h2>
+      {/* KVA Inicio reubicado a la derecha del nombre */}
+      <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+        KVA: <span className="text-slate-700 font-bold">{fmt(datos.kvaInicio)}</span>
       </div>
-      <div className="bg-emerald-50 flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-100">
-        <p className="text-xs uppercase font-bold text-slate-400 mb-1">Carga</p>
-        {/* Lee porcentajeCarga desde el backend */}
-        <p className="text-2xl font-bold text-emerald-600">{fmt(datos.porcentajeCarga || datos.cargaPct, '%')}</p>
+    </div>
+
+    <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
+      <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/50 flex flex-col justify-center text-center">
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KVA Término</p>
+        <p className="text-xl font-bold text-indigo-600">{fmt(datos.kvaTermino, ' KW')}</p>
+      </div>
+      <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50 flex flex-col justify-center text-center">
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Porcentaje Carga</p>
+        <p className="text-xl font-bold text-emerald-600">{fmt(datos.porcentajeCarga, '%')}</p>
       </div>
     </div>
   </div>
 );
 
-// --- VISTA PRINCIPAL ---
+// --- VISTA PRINCIPAL (DASHBOARD) ---
 const IcetelProgramaVista = () => {
   const [datosClima, setDatosClima] = useState([]);
   const [datosEnergia, setDatosEnergia] = useState([]);
@@ -103,13 +110,11 @@ const IcetelProgramaVista = () => {
   const [error, setError] = useState(null);
   const [salaSeleccionada, setSalaSeleccionada] = useState(null);
 
-  // Función para obtener los datos de la planilla
   const cargarDatos = useCallback(async () => {
     try {
       const res = await fetch(GAS_URL);
       const json = await res.json();
-      
-      if (!json.ok) throw new Error(json.error || 'Error al obtener datos');
+      if (!json.ok) throw new Error(json.error || 'Error desconocido del backend');
       
       setDatosClima(json.salas || []);
       setDatosEnergia(json.energia || json.ups || []);
@@ -121,79 +126,81 @@ const IcetelProgramaVista = () => {
     }
   }, []);
 
-  // Efecto para la actualización de la base de datos (cada 15s)
   useEffect(() => {
     cargarDatos();
-    const intervaloDatos = setInterval(cargarDatos, 15000);
+    const intervaloDatos = setInterval(cargarDatos, INTERVALO_DATOS_MS);
     return () => clearInterval(intervaloDatos);
   }, [cargarDatos]);
 
-  // Efecto para paginación (cambia la página visible cada 30 segundos)
-  const itemsPorPagina = 6;
-  const totalPaginas = Math.max(1, Math.ceil(Math.max(datosClima.length, datosEnergia.length) / itemsPorPagina));
+  const totalPaginas = Math.max(1, Math.ceil(Math.max(datosClima.length, datosEnergia.length) / ITEMS_POR_PAGINA));
+
+  useEffect(() => {
+    if (paginaActual >= totalPaginas) setPaginaActual(0);
+  }, [totalPaginas, paginaActual]);
 
   useEffect(() => {
     if (totalPaginas <= 1) return;
     const intervaloPagina = setInterval(() => {
-      setPaginaActual((prev) => (prev + 1) % totalPaginas);
-    }, 15000);
+      setPaginaActual((p) => (p + 1) % totalPaginas);
+    }, INTERVALO_PAGINA_MS);
     return () => clearInterval(intervaloPagina);
   }, [totalPaginas]);
 
-  // Selección de datos para la página actual
-  const inicio = paginaActual * itemsPorPagina;
-  const fin = inicio + itemsPorPagina;
-  const climaEnPantalla = datosClima.slice(inicio, fin);
-  const energiaEnPantalla = datosEnergia.slice(inicio, fin);
+  const indiceInicio = paginaActual * ITEMS_POR_PAGINA;
+  const indiceFin = indiceInicio + ITEMS_POR_PAGINA;
+  const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
+  const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="h-screen w-screen bg-slate-50 p-4 flex flex-col overflow-hidden font-sans">
-      <header className="mb-4 shrink-0 flex justify-between items-end">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 p-4 flex flex-col font-sans">
+      <header className="mb-3 flex justify-between items-end shrink-0">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">
-            {cargando ? 'Conectando con planilla...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas}`}
+          <p className="text-slate-500 text-sm font-medium mt-0.5">
+            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (Rotación cada 15s)`}
           </p>
         </div>
         <div className="flex items-center space-x-2">
-           <span className="relative flex h-3 w-3">
+          <span className="relative flex h-3 w-3">
             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${error ? 'bg-red-400' : 'bg-green-400'} opacity-75`}></span>
             <span className={`relative inline-flex rounded-full h-3 w-3 ${error ? 'bg-red-500' : 'bg-green-500'}`}></span>
           </span>
-          <span className="text-sm font-bold text-slate-600">
-            {error ? 'Error de Conexión' : 'Sistema Activo'}
-          </span>
+          <span className="text-sm font-bold text-slate-600">{error ? 'Error de conexión' : 'Sistema Activo'}</span>
         </div>
       </header>
 
       {error && (
-        <div className="mb-3 bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm border border-red-200">
-          No se pudieron cargar los datos: {error}
+        <div className="mb-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-2 shrink-0">
+          Error: {error}
         </div>
       )}
 
-      {/* CONTENEDOR DIVIDIDO */}
+      {/* CONTENEDOR DIVIDIDO (CLIMA / ENERGÍA) */}
       <div className="flex flex-1 flex-row gap-6 min-h-0">
         
-        {/* IZQUIERDA: CLIMA */}
+        {/* === LADO IZQUIERDO: CLIMA === */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-xl font-bold text-slate-700 mb-3 border-b-2 border-blue-400 pb-1 tracking-wide">CLIMA</h2>
-          <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1">
-            {climaEnPantalla.map((sala, index) => (
-              <TarjetaClima key={`clima-${sala.id || index}`} datos={sala} onClick={setSalaSeleccionada} />
+          <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
+            Clima
+          </h2>
+          <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
+            {climaEnPantalla.map((sala, i) => (
+              <TarjetaClima key={sala.id || `sala-${i}`} datos={sala} onClick={setSalaSeleccionada} />
             ))}
           </div>
         </div>
 
-        {/* DIVISOR CENTRAL */}
-        <div className="w-1 bg-slate-200 rounded-full my-6"></div>
+        {/* LÍNEA DIVISORIA CENTRAL */}
+        <div className="w-[2px] bg-slate-200 rounded-full my-4"></div>
 
-        {/* DERECHA: ENERGÍA */}
+        {/* === LADO DERECHO: ENERGÍA === */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-xl font-bold text-slate-700 mb-3 border-b-2 border-orange-400 pb-1 tracking-wide">ENERGÍA</h2>
-          <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1">
-            {energiaEnPantalla.map((ups, index) => (
-              <TarjetaEnergia key={`ups-${ups.id || index}`} datos={ups} />
+          <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-orange-400 pb-1 uppercase tracking-wide">
+            Energía
+          </h2>
+          <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
+            {energiaEnPantalla.map((ups, i) => (
+              <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />
             ))}
           </div>
         </div>
