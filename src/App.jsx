@@ -101,6 +101,12 @@ const TarjetaClima = ({ datos, onClick }) => (
       <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
         <p className="text-xl font-bold text-purple-600">{fmt(datos.kw)}</p>
+        {/* Nuevo indicador de Porcentaje Operativo basado en los circuitos */}
+        {datos.porcentajeOperativo !== undefined && (
+          <p className="text-[9px] font-bold text-purple-500/80 mt-0.5">
+            {fmtPorcentaje(datos.porcentajeOperativo)} Operativo
+          </p>
+        )}
       </div>
       <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
@@ -109,6 +115,7 @@ const TarjetaClima = ({ datos, onClick }) => (
     </div>
   </button>
 );
+
 
 // --- TARJETA CHILLER (Ch01 y Ch02 juntos en Panel 3) ---
 const TarjetaChiller = ({ datos }) => {
