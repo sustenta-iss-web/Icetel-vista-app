@@ -88,8 +88,13 @@ const TarjetaClima = ({ datos, onClick }) => {
     >
       <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
         <h2 className="text-sm font-bold text-slate-800 truncate">{datos.nombre || 'Sala'}</h2>
-        <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
-          Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
+          <div className="text-[9px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+            Max KWF: <span className="text-slate-700 font-bold">{fmt(datos.maxKwf)}</span>
+          </div>
+          <div className="text-[9px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+            Max TI: <span className="text-slate-700 font-bold">{fmt(datos.maxTi)}</span>
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
@@ -112,7 +117,12 @@ const TarjetaClima = ({ datos, onClick }) => {
         </div>
         <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center text-center">
           <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
-          <p className="text-xl font-bold text-orange-600">{fmtPorcentaje(datos.cargaTi)}</p>
+          <p className="text-xl font-bold text-orange-600">{fmt(datos.cargaTiKw)}</p>
+          {datos.cargaTi !== undefined && datos.cargaTi !== null && (
+            <p className="text-[9px] font-bold text-orange-500/80 mt-0.5">
+              {fmtPorcentaje(datos.cargaTi)} Carga
+            </p>
+          )}
         </div>
       </div>
     </button>
