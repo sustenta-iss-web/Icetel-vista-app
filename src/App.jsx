@@ -23,35 +23,35 @@ const TarjetaSala = ({ datos, onClick }) => {
   return (
     <button
       onClick={() => onClick(datos)}
-      className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left cursor-pointer overflow-hidden"
+      className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left cursor-pointer overflow-hidden"
     >
-      <div className="flex justify-between items-center mb-1.5 border-b border-slate-100 pb-1.5">
+      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
         <h2 className="text-sm font-bold text-slate-800 truncate">{datos.nombre}</h2>
         <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
           Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5 mb-1.5">
-        <div className="bg-blue-50/50 p-1.5 rounded-lg border border-blue-100/50">
-          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
-          <p className="text-sm font-semibold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
+      <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
+        <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 flex flex-col justify-center">
+          <p className="text-xs uppercase font-bold text-slate-400 tracking-wider">T°</p>
+          <p className="text-2xl font-bold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
         </div>
-        <div className="bg-cyan-50/50 p-1.5 rounded-lg border border-cyan-100/50">
-          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
-          <p className="text-sm font-semibold text-cyan-600">{fmt(datos.humedad, '%')}</p>
+        <div className="bg-cyan-50/50 p-2 rounded-lg border border-cyan-100/50 flex flex-col justify-center">
+          <p className="text-xs uppercase font-bold text-slate-400 tracking-wider">H%</p>
+          <p className="text-2xl font-bold text-cyan-600">{fmt(datos.humedad, '%')}</p>
         </div>
-        <div className="bg-purple-50/50 p-1.5 rounded-lg border border-purple-100/50">
-          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Kw</p>
-          <p className="text-sm font-semibold text-purple-600">{fmt(datos.kw)}</p>
+        <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center">
+          <p className="text-xs uppercase font-bold text-slate-400 tracking-wider">Kw</p>
+          <p className="text-2xl font-bold text-purple-600">{fmt(datos.kw)}</p>
         </div>
-        <div className="bg-orange-50/50 p-1.5 rounded-lg border border-orange-100/50">
-          <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
-          <p className="text-sm font-semibold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
+        <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center">
+          <p className="text-xs uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
+          <p className="text-2xl font-bold text-orange-600">{fmt(datos.cargaTi, '%')}</p>
         </div>
       </div>
 
-      <div className={`mt-auto text-center py-1 rounded-md text-[11px] font-bold border ${obtenerEstiloCondicion(datos.condicion)}`}>
+      <div className={`shrink-0 text-center py-1.5 rounded-md text-xs font-bold border ${obtenerEstiloCondicion(datos.condicion)}`}>
         {datos.condicion || 'Sin datos'}
       </div>
     </button>
