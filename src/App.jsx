@@ -175,10 +175,10 @@ const IcetelProgramaVista = () => {
   const salasEnPantalla = salas.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-50 p-4 flex flex-col font-sans">
-      <header className="mb-3 flex justify-between items-end shrink-0">
+    <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-slate-50 p-4 flex flex-col font-sans">
+      <header className="mb-3 flex flex-col gap-2 lg:flex-row lg:justify-between lg:items-end shrink-0">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
+          <h1 className="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
           <p className="text-slate-500 text-sm font-medium mt-0.5 transition-all">
             {salas.length > 0
               ? `Mostrando salas ${indiceInicio + 1} a ${Math.min(indiceFin, salas.length)} de ${salas.length}`
@@ -200,7 +200,7 @@ const IcetelProgramaVista = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-5 grid-rows-2 gap-3 flex-1 min-h-0">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:grid-rows-2 gap-3 lg:flex-1 lg:min-h-0">
         {salasEnPantalla.map((sala) => (
           <TarjetaSala key={sala.id} datos={sala} onClick={setSalaSeleccionada} />
         ))}
