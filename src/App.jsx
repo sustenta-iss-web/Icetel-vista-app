@@ -4,14 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
 const ITEMS_POR_PAGINA = 6; // 6 para clima, 6 para energía
 const INTERVALO_DATOS_MS = 15000; // Refresca datos cada 15s
-const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s (carrusel)
+const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
-// --- FUNCIÓN BLINDADA PARA PORCENTAJES CON DECIMALES PERIÓDICOS ---
 const fmtPorcentaje = (valor) => {
   if (valor === null || valor === undefined || valor === '') return '—';
-  
   if (typeof valor === 'number') {
     let num = valor;
     if (num > 100) {
@@ -22,29 +20,21 @@ const fmtPorcentaje = (valor) => {
     }
     return `${num.toFixed(1)}%`;
   }
-  
   try {
     let s = String(valor).trim().replace(/\s+/g, '');
-    
-    // Normalizar comas y puntos decimales
     s = s.replace(/,/g, '.');
-    
     const parts = s.split('.');
     if (parts.length > 2) {
       s = parts[0] + '.' + parts.slice(1).join('');
     }
-
     let num = Number(s);
     if (isNaN(num)) return '—';
-
-    // Si el número es mayor a 100 debido a decimales largos pegados (ej: 22181818181)
     if (num > 100) {
       let s_dig = String(Math.floor(num));
       if (s_dig.length >= 3) {
         num = Number(s_dig.slice(0, 2) + '.' + s_dig.slice(2));
       }
     }
-
     return `${num.toFixed(1)}%`;
   } catch (e) {
     return '—';
@@ -87,7 +77,7 @@ const ModalEquipos = ({ sala, onClose }) => {
   );
 };
 
-// --- TARJETA CLIMA (Lado Izquierdo) ---
+// --- TARJETA CLIMA (Salas) ---
 const TarjetaClima = ({ datos, onClick }) => (
   <button 
     onClick={() => onClick(datos)}
@@ -120,7 +110,35 @@ const TarjetaClima = ({ datos, onClick }) => (
   </button>
 );
 
-// --- TARJETA ENERGÍA (Lado Derecho - UPS) ---
+// --- TARJETA CHILLER (Nuevo KPI de Clima) ---
+const TarjetaChiller = ({ datos }) => {
+  const statusList = datos.statusCompresores || [];
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left overflow-hidden">
+      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
+        <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'Chiller'}</h2>
+        <div className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md whitespace-nowrap flex gap-1">
+          <span>Comp:</span>
+          {statusList.length > 0 ? statusList.map((st, idx) => (
+            <span key={idx} className="font-bold text-slate-700">[{st || '—'}]</span>
+          )) : <span className="text-slate-400">—</span>}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
+        <div className="bg-teal-50/50 p-2 rounded-lg border border-teal-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Surtidor</p>
+          <p className="text-xl font-bold text-teal-600">{fmt(datos.tempSurtidor, '°C')}</p>
+        </div>
+        <div className="bg-sky-50/50 p-2 rounded-lg border border-sky-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Retorno</p>
+          <p className="text-xl font-bold text-sky-600">{fmt(datos.tempRetorno, '°C')}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- TARJETA ENERGÍA (UPS) ---
 const TarjetaEnergia = ({ datos }) => (
   <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left overflow-hidden">
     <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
@@ -158,7 +176,12 @@ const IcetelProgramaVista = () => {
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Error desconocido del backend');
       
-      setDatosClima(json.salas || []);
+      // Combinamos las salas de clima y los chillers en una sola lista para el apartado Clima
+      const salas = json.salas || [];
+      const chillers = json.chillers || [];
+      const climaCombinado = [...salas, ...chillers];
+
+      setDatosClima(climaCombinado);
       setDatosEnergia(json.energia || json.ups || []);
       setError(null);
     } catch (err) {
@@ -220,15 +243,18 @@ const IcetelProgramaVista = () => {
       {/* CONTENEDOR DIVIDIDO (CLIMA / ENERGÍA) */}
       <div className="flex flex-1 flex-row gap-6 min-h-0">
         
-        {/* === LADO IZQUIERDO: CLIMA === */}
+        {/* === LADO IZQUIERDO: CLIMA (Salas + Chillers) === */}
         <div className="flex-1 flex flex-col min-w-0">
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
             Clima
           </h2>
           <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
-            {climaEnPantalla.map((sala, i) => (
-              <TarjetaClima key={sala.id || `sala-${i}`} datos={sala} onClick={setSalaSeleccionada} />
-            ))}
+            {climaEnPantalla.map((item, i) => {
+              if (item.tipo === 'chiller') {
+                return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
+              }
+              return <TarjetaClima key={item.id || `sala-${i}`} datos={item} onClick={setSalaSeleccionada} />;
+            })}
           </div>
         </div>
 
