@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 // --- CONFIGURACIÓN ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
-const ITEMS_POR_PAGINA = 6; // 6 elementos por panel (3 arriba, 3 abajo)
-const INTERVALO_DATOS_MS = 15000; // Refresca datos cada 15s
-const INTERVALO_PAGINA_MS = 15000; // Cambia de panel cada 15s (carrusel)
+const ITEMS_POR_PAGINA = 6; 
+const INTERVALO_DATOS_MS = 15000; 
+const INTERVALO_PAGINA_MS = 15000; 
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
@@ -41,7 +41,7 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- MODAL DE DETALLE DE EQUIPOS (Para Clima) ---
+// --- MODAL DE DETALLE DE EQUIPOS ---
 const ModalEquipos = ({ sala, onClose }) => {
   if (!sala) return null;
 
@@ -62,7 +62,7 @@ const ModalEquipos = ({ sala, onClose }) => {
           {(sala.equipos || []).map((eq, i) => (
             <div key={i} className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100 flex justify-between items-center">
               <div>
-                <span className="font-bold text-slate-700">{eq.nombre}</span>
+                <span className="font-bold text-slate-700">{eq.nombre || 'Equipo'}</span>
                 {eq.tipo && <span className="ml-2 text-xs text-slate-500">({eq.tipo})</span>}
               </div>
               <div className="flex gap-4 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
@@ -77,76 +77,106 @@ const ModalEquipos = ({ sala, onClose }) => {
   );
 };
 
-// --- TARJETA CLIMA (Salas) ---
-const TarjetaClima = ({ datos, onClick }) => (
-  <button 
-    onClick={() => onClick(datos)}
-    className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full hover:shadow-md transition-shadow text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 w-full overflow-hidden"
-  >
-    <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
-      <h2 className="text-sm font-bold text-slate-800 truncate">{datos.nombre || 'Sala Desconocida'}</h2>
-      <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
-        Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
+// --- TARJETA CLIMA ---
+const TarjetaClima = ({ datos, onClick }) => {
+  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+  
+  return (
+    <button 
+      onClick={() => onClick(datos)}
+      className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full hover:shadow-md transition-shadow text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 w-full overflow-hidden"
+    >
+      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
+        <h2 className="text-sm font-bold text-slate-800 truncate">{datos.nombre || 'Sala'}</h2>
+        <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+          Máx: <span className="text-slate-700 font-bold">{fmt(datos.maximo)}</span>
+        </div>
       </div>
-    </div>
-    
-    <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-      {/* Temperatura */}
-      <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
-        <p className="text-xl font-bold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
+      <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
+        <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
+          <p className="text-xl font-bold text-blue-600">{fmt(datos.temperatura, '°C')}</p>
+        </div>
+        <div className="bg-cyan-50/50 p-2 rounded-lg border border-cyan-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
+          <p className="text-xl font-bold text-cyan-600">{fmt(datos.humedad, '%')}</p>
+        </div>
+        <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
+          <p className="text-xl font-bold text-purple-600">{fmt(datos.kw)}</p>
+          {datos.porcentajeOperativo !== undefined && (
+            <p className="text-[9px] font-bold text-purple-500/80 mt-0.5">
+              {fmtPorcentaje(datos.porcentajeOperativo)} Operativo
+            </p>
+          )}
+        </div>
+        <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
+          <p className="text-xl font-bold text-orange-600">{fmtPorcentaje(datos.cargaTi)}</p>
+        </div>
       </div>
-      
-      {/* Humedad */}
-      <div className="bg-cyan-50/50 p-2 rounded-lg border border-cyan-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
-        <p className="text-xl font-bold text-cyan-600">{fmt(datos.humedad, '%')}</p>
-      </div>
-      
-      {/* KWF */}
-      <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
-        <p className="text-xl font-bold text-purple-600">{fmt(datos.kw)}</p>
-        {datos.porcentajeOperativo !== undefined && (
-          <p className="text-[9px] font-bold text-purple-500/80 mt-0.5">
-            {fmtPorcentaje(datos.porcentajeOperativo)} Operativo
-          </p>
-        )}
-      </div>
-      
-      {/* Carga TI (Calculada desde la hoja KwF-KwTI) */}
-      <div className="bg-orange-50/50 p-2 rounded-lg border border-orange-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
-        <p className="text-xl font-bold text-orange-600">{fmtPorcentaje(datos.cargaTi)}</p>
-      </div>
-    </div>
-  </button>
-);
+    </button>
+  );
+};
 
-// --- TARJETA ENERGÍA (UPS) ---
-const TarjetaEnergia = ({ datos }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left overflow-hidden">
-    <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
-      <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'UPS Desconocida'}</h2>
-      <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
-        KVA: <span className="text-slate-700 font-bold">{fmt(datos.kvaInicio)}</span>
+// --- TARJETA CHILLER ---
+const TarjetaChiller = ({ datos }) => {
+  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+  const statusList = datos.statusCompresores || [];
+  
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left overflow-hidden">
+      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
+        <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'Chiller'}</h2>
+        <div className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md whitespace-nowrap flex gap-1">
+          <span>Comp:</span>
+          {statusList.length > 0 ? statusList.map((st, idx) => (
+            <span key={idx} className="font-bold text-slate-700">[{st || '—'}]</span>
+          )) : <span className="text-slate-400">—</span>}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
+        <div className="bg-teal-50/50 p-2 rounded-lg border border-teal-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Surtidor</p>
+          <p className="text-xl font-bold text-teal-600">{fmt(datos.tempSurtidor, '°C')}</p>
+        </div>
+        <div className="bg-sky-50/50 p-2 rounded-lg border border-sky-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Retorno</p>
+          <p className="text-xl font-bold text-sky-600">{fmt(datos.tempRetorno, '°C')}</p>
+        </div>
       </div>
     </div>
+  );
+};
 
-    <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
-      <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KW</p>
-        <p className="text-xl font-bold text-indigo-600">{fmt(datos.kvaTermino)}</p>
+// --- TARJETA ENERGÍA ---
+const TarjetaEnergia = ({ datos }) => {
+  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left overflow-hidden">
+      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
+        <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'UPS'}</h2>
+        <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+          KVA: <span className="text-slate-700 font-bold">{fmt(datos.kvaInicio)}</span>
+        </div>
       </div>
-      <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50 flex flex-col justify-center text-center">
-        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Porcentaje Carga</p>
-        <p className="text-xl font-bold text-emerald-600">{fmtPorcentaje(datos.porcentajeCarga)}</p>
+
+      <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
+        <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KW</p>
+          <p className="text-xl font-bold text-indigo-600">{fmt(datos.kvaTermino)}</p>
+        </div>
+        <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Porcentaje Carga</p>
+          <p className="text-xl font-bold text-emerald-600">{fmtPorcentaje(datos.porcentajeCarga)}</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-// --- VISTA PRINCIPAL (DASHBOARD) ---
+// --- VISTA PRINCIPAL ---
 const IcetelProgramaVista = () => {
   const [datosClima, setDatosClima] = useState([]);
   const [datosEnergia, setDatosEnergia] = useState([]);
@@ -159,19 +189,16 @@ const IcetelProgramaVista = () => {
     try {
       const res = await fetch(GAS_URL);
       const json = await res.json();
-      if (!json.ok) throw new Error(json.error || 'Error desconocido del backend');
+      if (!json.ok) throw new Error(json.error || 'Error desconocido');
       
       const salas = json.salas || [];
       let chillers = json.chillers || [];
 
-      // 1. Ordenar estrictamente los chillers alfabéticamente (CH01 primero, CH02 después)
       chillers.sort((a, b) => (a.equipo || '').localeCompare(b.equipo || ''));
 
-      // 2. Forzar que los chillers comiencen exactamente en el índice 12 (Inicio del Panel 3)
-      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; // 12 (Panel 3)
+      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; // 12
       let salasModificadas = [...salas];
       
-      // Si hay menos de 12 salas, rellenamos con espacios vacíos (null) para mantener la posición fija
       while (salasModificadas.length < indiceInicioPanel3) {
         salasModificadas.push(null);
       }
@@ -179,7 +206,6 @@ const IcetelProgramaVista = () => {
       const salasPanel1y2 = salasModificadas.slice(0, indiceInicioPanel3);
       const salasRestantes = salasModificadas.slice(indiceInicioPanel3);
 
-      // Combinar: 12 elementos en paneles 1 y 2 + Chillers en el inicio del Panel 3 + Resto
       const climaCombinado = [...salasPanel1y2, ...chillers, ...salasRestantes];
 
       setDatosClima(climaCombinado);
@@ -241,10 +267,9 @@ const IcetelProgramaVista = () => {
         </div>
       )}
 
-      {/* CONTENEDOR DIVIDIDO (CLIMA / ENERGÍA) */}
       <div className="flex flex-1 flex-row gap-6 min-h-0">
         
-        {/* === LADO IZQUIERDO: CLIMA === */}
+        {/* CLIMA */}
         <div className="flex-1 flex flex-col min-w-0">
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
             Clima
@@ -262,18 +287,20 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        {/* LÍNEA DIVISORIA CENTRAL */}
         <div className="w-[2px] bg-slate-200 rounded-full my-4"></div>
 
-        {/* === LADO DERECHO: ENERGÍA === */}
+        {/* ENERGÍA */}
         <div className="flex-1 flex flex-col min-w-0">
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-orange-400 pb-1 uppercase tracking-wide">
             Energía
           </h2>
           <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
-            {energiaEnPantalla.map((ups, i) => (
-              <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />
-            ))}
+            {energiaEnPantalla.map((ups, i) => {
+              if (!ups) {
+                return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+              }
+              return <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />;
+            })}
           </div>
         </div>
 
