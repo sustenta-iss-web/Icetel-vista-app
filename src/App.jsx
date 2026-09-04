@@ -242,8 +242,7 @@ const IcetelProgramaVista = () => {
     if (paginaActual >= totalPaginas) setPaginaActual(0);
   }, [totalPaginas, paginaActual]);
 
-  // Rotación automática — se reinicia cada vez que el usuario navega manualmente,
-  // para no "pelear" con la flecha recién presionada.
+  // Rotación automática — se reinicia cada vez que el usuario navega manualmente
   const reiniciarRotacion = useCallback(() => {
     if (intervaloRef.current) clearInterval(intervaloRef.current);
     if (totalPaginas <= 1) return;
@@ -257,7 +256,7 @@ const IcetelProgramaVista = () => {
     return () => { if (intervaloRef.current) clearInterval(intervaloRef.current); };
   }, [reiniciarRotacion]);
 
-  // Navegación con flechas del teclado (← →, también ↑ ↓)
+  // Navegación con flechas del teclado
   useEffect(() => {
     const manejarTeclado = (ev) => {
       if (totalPaginas <= 1) return;
@@ -311,7 +310,8 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
             Clima
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-[7] min-h-0">
+          {/* CORRECCIÓN APLICADA AQUÍ: lg:flex-[7] */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
             {climaEnPantalla.map((item, i) => {
               if (!item) {
                 return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
@@ -322,7 +322,8 @@ const IcetelProgramaVista = () => {
               return <TarjetaClima key={item.id || `sala-${i}`} datos={item} onClick={setSalaSeleccionada} />;
             })}
           </div>
-          <div className="flex-1 shrink-0"></div>
+          {/* CORRECCIÓN APLICADA AQUÍ: Solo mostrar el espaciador en escritorio */}
+          <div className="hidden lg:block lg:flex-1 shrink-0"></div>
         </div>
 
         <div className="hidden lg:block w-[2px] bg-slate-200 rounded-full my-4"></div>
@@ -333,7 +334,8 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-orange-400 pb-1 uppercase tracking-wide">
             Energía
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-[7] min-h-0">
+          {/* CORRECCIÓN APLICADA AQUÍ: lg:flex-[7] */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) {
                 return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
@@ -341,7 +343,8 @@ const IcetelProgramaVista = () => {
               return <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />;
             })}
           </div>
-          <div className="flex-1 shrink-0"></div>
+          {/* CORRECCIÓN APLICADA AQUÍ: Solo mostrar el espaciador en escritorio */}
+          <div className="hidden lg:block lg:flex-1 shrink-0"></div>
         </div>
 
       </div>
