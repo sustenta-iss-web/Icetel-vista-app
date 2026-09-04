@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 // --- CONFIGURACIÓN ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVRISt9dGOt0lXWimGVCkH2jLmWKHL1h-CLNEBymE6Q9gp_WOeJzTTUh6cKjqynBms/exec';
-const ITEMS_POR_PAGINA = 6; 
-const INTERVALO_DATOS_MS = 15000; 
-const INTERVALO_PAGINA_MS = 15000; 
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
+const ITEMS_POR_PAGINA = 6;
+const INTERVALO_DATOS_MS = 15000;
+const INTERVALO_PAGINA_MS = 15000;
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
@@ -80,9 +80,9 @@ const ModalEquipos = ({ sala, onClose }) => {
 // --- TARJETA CLIMA ---
 const TarjetaClima = ({ datos, onClick }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
-  
+
   return (
-    <button 
+    <button
       onClick={() => onClick(datos)}
       className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full hover:shadow-md transition-shadow text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 w-full overflow-hidden"
     >
@@ -123,7 +123,7 @@ const TarjetaClima = ({ datos, onClick }) => {
 const TarjetaChiller = ({ datos }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
   const statusList = datos.statusCompresores || [];
-  
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left overflow-hidden">
       <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
@@ -185,12 +185,14 @@ const IcetelProgramaVista = () => {
   const [error, setError] = useState(null);
   const [salaSeleccionada, setSalaSeleccionada] = useState(null);
 
+  const intervaloRef = useRef(null);
+
   const cargarDatos = useCallback(async () => {
     try {
       const res = await fetch(GAS_URL);
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || 'Error desconocido');
-      
+
       const salas = json.salas || [];
       let chillers = json.chillers || [];
 
@@ -198,7 +200,7 @@ const IcetelProgramaVista = () => {
 
       const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; // 12
       let salasModificadas = [...salas];
-      
+
       while (salasModificadas.length < indiceInicioPanel3) {
         salasModificadas.push(null);
       }
@@ -230,13 +232,38 @@ const IcetelProgramaVista = () => {
     if (paginaActual >= totalPaginas) setPaginaActual(0);
   }, [totalPaginas, paginaActual]);
 
-  useEffect(() => {
+  // Rotación automática — se reinicia cada vez que el usuario navega manualmente,
+  // para no "pelear" con la flecha recién presionada.
+  const reiniciarRotacion = useCallback(() => {
+    if (intervaloRef.current) clearInterval(intervaloRef.current);
     if (totalPaginas <= 1) return;
-    const intervaloPagina = setInterval(() => {
+    intervaloRef.current = setInterval(() => {
       setPaginaActual((p) => (p + 1) % totalPaginas);
     }, INTERVALO_PAGINA_MS);
-    return () => clearInterval(intervaloPagina);
   }, [totalPaginas]);
+
+  useEffect(() => {
+    reiniciarRotacion();
+    return () => { if (intervaloRef.current) clearInterval(intervaloRef.current); };
+  }, [reiniciarRotacion]);
+
+  // Navegación con flechas del teclado (← →, también ↑ ↓)
+  useEffect(() => {
+    const manejarTeclado = (ev) => {
+      if (totalPaginas <= 1) return;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        setPaginaActual((p) => (p + 1) % totalPaginas);
+        reiniciarRotacion();
+      } else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        setPaginaActual((p) => (p - 1 + totalPaginas) % totalPaginas);
+        reiniciarRotacion();
+      }
+    };
+    window.addEventListener('keydown', manejarTeclado);
+    return () => window.removeEventListener('keydown', manejarTeclado);
+  }, [totalPaginas, reiniciarRotacion]);
 
   const indiceInicio = paginaActual * ITEMS_POR_PAGINA;
   const indiceFin = indiceInicio + ITEMS_POR_PAGINA;
@@ -244,12 +271,12 @@ const IcetelProgramaVista = () => {
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-50 p-4 flex flex-col font-sans">
-      <header className="mb-3 flex justify-between items-end shrink-0">
+    <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-slate-50 p-4 flex flex-col font-sans">
+      <header className="mb-3 flex flex-col gap-2 lg:flex-row lg:justify-between lg:items-end shrink-0">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
+          <h1 className="text-xl lg:text-2xl font-extrabold text-slate-800 tracking-tight">Icetel Visualización</h1>
           <p className="text-slate-500 text-sm font-medium mt-0.5">
-            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (Rotación cada 15s)`}
+            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (rotación cada 15s · usa ← → para cambiar)`}
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -267,14 +294,14 @@ const IcetelProgramaVista = () => {
         </div>
       )}
 
-      <div className="flex flex-1 flex-row gap-6 min-h-0">
-        
+      <div className="flex flex-col lg:flex-row flex-1 gap-4 lg:gap-6 min-h-0">
+
         {/* CLIMA */}
         <div className="flex-1 flex flex-col min-w-0">
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
             Clima
           </h2>
-          <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
             {climaEnPantalla.map((item, i) => {
               if (!item) {
                 return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
@@ -287,14 +314,15 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        <div className="w-[2px] bg-slate-200 rounded-full my-4"></div>
+        <div className="hidden lg:block w-[2px] bg-slate-200 rounded-full my-4"></div>
+        <div className="block lg:hidden h-[2px] bg-slate-200 rounded-full"></div>
 
         {/* ENERGÍA */}
         <div className="flex-1 flex flex-col min-w-0">
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-orange-400 pb-1 uppercase tracking-wide">
             Energía
           </h2>
-          <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) {
                 return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
