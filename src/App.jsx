@@ -110,7 +110,7 @@ const TarjetaClima = ({ datos, onClick }) => (
   </button>
 );
 
-// --- TARJETA CHILLER (Ch01 y Ch02 en Panel 3) ---
+// --- TARJETA CHILLER (Ch01 y Ch02 juntos en Panel 3) ---
 const TarjetaChiller = ({ datos }) => {
   const statusList = datos.statusCompresores || [];
   return (
@@ -177,15 +177,24 @@ const IcetelProgramaVista = () => {
       if (!json.ok) throw new Error(json.error || 'Error desconocido del backend');
       
       const salas = json.salas || [];
-      const chillers = json.chillers || [];
+      let chillers = json.chillers || [];
 
-      // Organizamos los elementos para que los chillers queden exactamente 
-      // al inicio del Panel 3 (índice 12, asumiendo 6 elementos por página)
-      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; // 12
-      const salasPanel1y2 = salas.slice(0, indiceInicioPanel3);
-      const salasRestantes = salas.slice(indiceInicioPanel3);
+      // 1. Ordenar estrictamente los chillers alfabéticamente (CH01 primero, CH02 después)
+      chillers.sort((a, b) => (a.equipo || '').localeCompare(b.equipo || ''));
 
-      // Combinación ordenada: 12 salas -> Chiller 1 y Chiller 2 -> Resto de salas
+      // 2. Forzar que los chillers comiencen exactamente en el índice 12 (Inicio del Panel 3)
+      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; // 12 (Panel 3)
+      let salasModificadas = [...salas];
+      
+      // Si hay menos de 12 salas, rellenamos con espacios vacíos (null) para mantener la posición fija
+      while (salasModificadas.length < indiceInicioPanel3) {
+        salasModificadas.push(null);
+      }
+
+      const salasPanel1y2 = salasModificadas.slice(0, indiceInicioPanel3);
+      const salasRestantes = salasModificadas.slice(indiceInicioPanel3);
+
+      // Combinar: 12 elementos en paneles 1 y 2 + Chillers en el inicio del Panel 3 + Resto
       const climaCombinado = [...salasPanel1y2, ...chillers, ...salasRestantes];
 
       setDatosClima(climaCombinado);
@@ -250,13 +259,16 @@ const IcetelProgramaVista = () => {
       {/* CONTENEDOR DIVIDIDO (CLIMA / ENERGÍA) */}
       <div className="flex flex-1 flex-row gap-6 min-h-0">
         
-        {/* === LADO IZQUIERDO: CLIMA (Salas + Chillers) === */}
+        {/* === LADO IZQUIERDO: CLIMA === */}
         <div className="flex-1 flex flex-col min-w-0">
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
             Clima
           </h2>
           <div className="grid grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
             {climaEnPantalla.map((item, i) => {
+              if (!item) {
+                return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+              }
               if (item.tipo === 'chiller') {
                 return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
               }
