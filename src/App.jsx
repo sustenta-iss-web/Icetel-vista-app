@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 // --- CONFIGURACIÓN ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVRISt9dGOt0lXWimGVCkH2jLmWKHL1h-CLNEBymE6Q9gp_WOeJzTTUh6cKjqynBms/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqf0aKdc-ndKrSryz8a42Nl-aO-nkdiY3F4pn3VxgQeo4wkgwczpDZlNZCsEIVJu9z/exec';
 const ITEMS_POR_PAGINA = 6;
 const INTERVALO_DATOS_MS = 15000;
 const INTERVALO_PAGINA_MS = 15000;
@@ -311,7 +311,7 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-blue-400 pb-1 uppercase tracking-wide">
             Clima
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-[7] min-h-0">
             {climaEnPantalla.map((item, i) => {
               if (!item) {
                 return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
@@ -322,6 +322,7 @@ const IcetelProgramaVista = () => {
               return <TarjetaClima key={item.id || `sala-${i}`} datos={item} onClick={setSalaSeleccionada} />;
             })}
           </div>
+          <div className="flex-1 shrink-0"></div>
         </div>
 
         <div className="hidden lg:block w-[2px] bg-slate-200 rounded-full my-4"></div>
@@ -332,7 +333,7 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold text-slate-700 mb-2 border-b-2 border-orange-400 pb-1 uppercase tracking-wide">
             Energía
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-[7] min-h-0">
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) {
                 return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
@@ -340,6 +341,7 @@ const IcetelProgramaVista = () => {
               return <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />;
             })}
           </div>
+          <div className="flex-1 shrink-0"></div>
         </div>
 
       </div>
