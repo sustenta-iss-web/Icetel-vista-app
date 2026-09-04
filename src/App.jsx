@@ -79,7 +79,7 @@ const ModalEquipos = ({ sala, onClose }) => {
 
 // --- TARJETA CLIMA ---
 const TarjetaClima = ({ datos, onClick }) => {
-  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
   return (
     <button
@@ -131,11 +131,11 @@ const TarjetaClima = ({ datos, onClick }) => {
 
 // --- TARJETA CHILLER ---
 const TarjetaChiller = ({ datos }) => {
-  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full transition-shadow hover:shadow-md text-left overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col justify-between h-full w-full transition-shadow hover:shadow-md text-left overflow-hidden">
       <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
         <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'Chiller'}</h2>
         <div className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md whitespace-nowrap flex gap-1">
@@ -161,10 +161,10 @@ const TarjetaChiller = ({ datos }) => {
 
 // --- TARJETA ENERGÍA ---
 const TarjetaEnergia = ({ datos }) => {
-  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full transition-shadow hover:shadow-md text-left overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 flex flex-col h-full w-full transition-shadow hover:shadow-md text-left overflow-hidden">
       <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5 shrink-0">
         <h2 className="text-sm font-bold text-slate-800 truncate">{datos.equipo || 'UPS'}</h2>
         <div className="text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-md whitespace-nowrap">
@@ -314,7 +314,7 @@ const IcetelProgramaVista = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-[7] min-h-0">
             {climaEnPantalla.map((item, i) => {
               if (!item) {
-                return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+                return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
               }
               if (item.tipo === 'chiller') {
                 return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
@@ -336,7 +336,7 @@ const IcetelProgramaVista = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-[7] min-h-0">
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) {
-                return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full"></div>;
+                return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
               }
               return <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />;
             })}
