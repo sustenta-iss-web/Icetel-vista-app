@@ -8,13 +8,28 @@ const INTERVALO_PAGINA_MS = 15000; // Cambia de página cada 15s (carrusel)
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
-// Función específica para formatear porcentajes largos a un solo decimal (ej: 22.1)
+// --- FUNCIÓN BLINDADA PARA LIMPIAR Y FORMATEAR DECIMALES LARGOS ---
 const fmtPorcentaje = (valor) => {
-  if (valor === null || valor === undefined || valor === '' ) return '—';
-  // Reemplaza comas por puntos por si viene en formato texto con coma europea
-  const num = typeof valor === 'string' ? Number(valor.replace(',', '.')) : Number(valor);
-  if (isNaN(num)) return '—';
-  return `${num.toFixed(1)}%`;
+  if (valor === null || valor === undefined || valor === '') return '—';
+  
+  try {
+    // Convertimos a texto para limpiar posibles comas o puntos repetidos
+    let valStr = String(valor).trim();
+    
+    // Si viene con múltiples comas (ej: "22,181,818..."), asumimos que la primera coma es el separador decimal
+    // y removemos o unimos el resto correctamente.
+    valStr = valStr.replace(',', '.');
+    const partes = valStr.split('.');
+    if (partes.length > 2) {
+      valStr = partes[0] + '.' + partes.slice(1).join('');
+    }
+
+    const num = Number(valStr);
+    if (isNaN(num)) return '—';
+    return `${num.toFixed(1)}%`;
+  } catch (e) {
+    return '—';
+  }
 };
 
 // --- MODAL DE DETALLE DE EQUIPOS (Para Clima) ---
@@ -75,7 +90,6 @@ const TarjetaClima = ({ datos, onClick }) => (
         <p className="text-xl font-bold text-cyan-600">{fmt(datos.humedad, '%')}</p>
       </div>
       <div className="bg-purple-50/50 p-2 rounded-lg border border-purple-100/50 flex flex-col justify-center text-center">
-        {/* Etiqueta cambiada a KWF */}
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
         <p className="text-xl font-bold text-purple-600">{fmt(datos.kw)}</p>
       </div>
@@ -104,7 +118,6 @@ const TarjetaEnergia = ({ datos }) => (
       </div>
       <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50 flex flex-col justify-center text-center">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Porcentaje Carga</p>
-        {/* Se usa fmtPorcentaje para asegurar un solo decimal */}
         <p className="text-xl font-bold text-emerald-600">{fmtPorcentaje(datos.porcentajeCarga)}</p>
       </div>
     </div>
