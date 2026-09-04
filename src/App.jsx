@@ -136,7 +136,7 @@ const IcetelProgramaVista = () => {
     if (totalPaginas <= 1) return;
     const intervaloPagina = setInterval(() => {
       setPaginaActual((prev) => (prev + 1) % totalPaginas);
-    }, 30000);
+    }, 15000);
     return () => clearInterval(intervaloPagina);
   }, [totalPaginas]);
 
