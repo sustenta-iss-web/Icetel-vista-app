@@ -10,8 +10,9 @@ const INTERVALO_PAGINA_MS = 10000;
 const COLOR_PREOCUPANTE = '#cb2330';
 const COLOR_KWF_OK = '#e3f565';
 const COLOR_ENERGIA_OK = '#32817c';
-const UMBRAL_KWF = 40;      // % Operativo: bajo esto -> preocupante
+const UMBRAL_KWF = 50;      // % Operativo: bajo esto -> preocupante
 const UMBRAL_CARGA_UPS = 80; // % Carga: sobre esto -> preocupante
+const UMBRAL_TEMP = 28;      // °C: en o sobre esto -> preocupante
 
 // Convierte un hex "#rrggbb" a "rgba(r,g,b,alpha)"
 const hexA = (hex, alpha) => {
@@ -102,6 +103,10 @@ const TarjetaClima = ({ datos, onClick }) => {
   const kwfCritico = hayDatoKwf && pctKwf < UMBRAL_KWF;
   const colorKwf = hayDatoKwf ? (kwfCritico ? COLOR_PREOCUPANTE : COLOR_KWF_OK) : null;
 
+  const temp = datos.temperatura;
+  const hayDatoTemp = temp !== undefined && temp !== null;
+  const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
+
   return (
     <button
       onClick={() => onClick(datos)}
@@ -119,9 +124,17 @@ const TarjetaClima = ({ datos, onClick }) => {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        <div className="bg-blue-950/30 p-2 rounded-lg border border-blue-900/50 flex flex-col justify-center text-center">
+        <div
+          className="bg-blue-950/30 p-2 rounded-lg border border-blue-900/50 flex flex-col justify-center text-center transition-colors"
+          style={tempCritica ? {
+            backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18),
+            borderColor: hexA(COLOR_PREOCUPANTE, 0.55)
+          } : undefined}
+        >
           <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
-          <p className="text-xl font-bold text-blue-400">{fmt(datos.temperatura, '°C')}</p>
+          <p className={`text-xl font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
+            {fmt(temp, '°C')}
+          </p>
         </div>
         <div className="bg-cyan-950/30 p-2 rounded-lg border border-cyan-900/50 flex flex-col justify-center text-center">
           <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
