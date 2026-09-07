@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Reducir en un 10% (escala 0.9) en dispositivos móviles y Smart TVs */
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  .dashboard-root {
+    transform: scale(0.9);
+    transform-origin: top left;
+    width: 111.11%;
+    height: 111.11vh;
+    overflow: hidden !important;
+  }
+}
