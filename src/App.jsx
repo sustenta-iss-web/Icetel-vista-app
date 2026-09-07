@@ -57,50 +57,114 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- MODAL DE DETALLE DE EQUIPOS ---
-const ModalEquipos = ({ sala, onClose }) => {
-  if (!sala) return null;
+// --- MODAL DINÁMICO DE DETALLE (Reemplaza a ModalEquipos) ---
+const ModalDetalle = ({ config, onClose }) => {
+  const { sala, metrica } = config;
+  if (!sala || !metrica) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
-      <div className="bg-[#18181b] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-5 border-b border-stone-800">
-          <div>
-            <h3 className="text-xl font-bold text-stone-100">{sala.nombre}</h3>
-            <p className="text-sm text-stone-400">{(sala.equipos || []).length} equipo(s) en la sala</p>
-          </div>
-          <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
-        </div>
-        <div className="overflow-y-auto p-5 space-y-3">
-          {(!sala.equipos || sala.equipos.length === 0) && (
-            <p className="text-stone-500 text-sm text-center py-4">No hay detalle de equipos para mostrar.</p>
-          )}
-          {(sala.equipos || []).map((eq, i) => (
+  let titulo = '';
+  let contenido = null;
+
+  // Lógica para mostrar info diferente según el cuadro que se haya tocado
+  if (metrica === 'temperatura') {
+    titulo = `Temperaturas - ${sala.nombre}`;
+    contenido = (
+      <div className="space-y-3">
+        {(!sala.equipos || sala.equipos.length === 0) ? (
+          <p className="text-stone-500 text-sm text-center py-4">No hay equipos registrados.</p>
+        ) : (
+          sala.equipos.map((eq, i) => (
             <div key={i} className="bg-stone-900/60 rounded-xl px-4 py-3 border border-stone-800 flex justify-between items-center">
-              <div>
-                <span className="font-bold text-stone-200">{eq.nombre || 'Equipo'}</span>
-                {eq.tipo && <span className="ml-2 text-xs text-stone-500">({eq.tipo})</span>}
-              </div>
+              <span className="font-bold text-stone-200">{eq.nombre || 'Equipo'}</span>
               <div className="flex gap-4 text-sm bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner">
                 <span className="text-blue-400 font-bold">{fmt(eq.temperatura, '°C')}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    );
+  } else if (metrica === 'humedad') {
+    titulo = `Humedad - ${sala.nombre}`;
+    contenido = (
+      <div className="space-y-3">
+        {(!sala.equipos || sala.equipos.length === 0) ? (
+          <p className="text-stone-500 text-sm text-center py-4">No hay equipos registrados.</p>
+        ) : (
+          sala.equipos.map((eq, i) => (
+            <div key={i} className="bg-stone-900/60 rounded-xl px-4 py-3 border border-stone-800 flex justify-between items-center">
+              <span className="font-bold text-stone-200">{eq.nombre || 'Equipo'}</span>
+              <div className="flex gap-4 text-sm bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner">
                 <span className="text-cyan-400 font-bold">{fmt(eq.humedad, '%')}</span>
               </div>
             </div>
-          ))}
+          ))
+        )}
+      </div>
+    );
+  } else if (metrica === 'kwf') {
+    titulo = `Detalle KWF - ${sala.nombre}`;
+    contenido = (
+      <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
+        <div className="flex justify-between border-b border-stone-800/80 pb-3">
+          <span className="text-stone-400 font-medium">Capacidad Nominal (Máx KWF)</span>
+          <span className="text-stone-200 font-bold text-lg">{fmt(sala.maxKwf, ' kW')}</span>
+        </div>
+        <div className="flex justify-between border-b border-stone-800/80 pb-3">
+          <span className="text-stone-400 font-medium">KWF Actual (Calculado)</span>
+          <span className="text-purple-400 font-bold text-lg">{fmt(sala.kw, ' kW')}</span>
+        </div>
+        <div className="flex justify-between items-center pt-1">
+          <span className="text-stone-400 font-medium">Equipos Operativos</span>
+          <span className="text-purple-300 font-extrabold text-xl bg-purple-950/30 px-3 py-1 rounded-lg border border-purple-900/50">
+            {fmtPorcentaje(sala.porcentajeOperativo)}
+          </span>
+        </div>
+      </div>
+    );
+  } else if (metrica === 'cargati') {
+    titulo = `Detalle Carga TI - ${sala.nombre}`;
+    contenido = (
+      <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
+        <div className="flex justify-between border-b border-stone-800/80 pb-3">
+          <span className="text-stone-400 font-medium">Capacidad Total TI (Máx TI)</span>
+          <span className="text-stone-200 font-bold text-lg">{fmt(sala.maxTi, ' kW')}</span>
+        </div>
+        <div className="flex justify-between border-b border-stone-800/80 pb-3">
+          <span className="text-stone-400 font-medium">Carga TI Actual</span>
+          <span className="text-orange-400 font-bold text-lg">{fmt(sala.cargaTiKw, ' kW')}</span>
+        </div>
+        <div className="flex justify-between items-center pt-1">
+          <span className="text-stone-400 font-medium">Porcentaje de Carga</span>
+          <span className="text-orange-300 font-extrabold text-xl bg-orange-950/30 px-3 py-1 rounded-lg border border-orange-900/50">
+            {fmtPorcentaje(sala.cargaTi)}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
+      <div className="bg-[#18181b] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-5 border-b border-stone-800">
+          <h3 className="text-xl font-bold text-stone-100">{titulo}</h3>
+          <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
+        </div>
+        <div className="overflow-y-auto p-5">
+          {contenido}
         </div>
       </div>
     </div>
   );
 };
 
-// --- MODAL DE NOVEDADES (Estructurado por Clima Izquierda / Energía Derecha) ---
+// --- MODAL DE NOVEDADES ---
 const ModalNovedades = ({ novedades, onClose }) => {
   if (!novedades) return null;
 
-  // Filtramos según el área (normalizando a minúsculas para evitar errores de tipeo)
   const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
   const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia' ) || (n.area || '').toLowerCase().includes('energía'));
-  // Otras por si acaso hay alguna sin clasificar exacto
   const novOtras = novedades.filter(n => {
     const a = (n.area || '').toLowerCase();
     return !a.includes('clima') && !a.includes('energia') && !a.includes('energía');
@@ -109,8 +173,6 @@ const ModalNovedades = ({ novedades, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
       <div className="bg-[#141416] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col text-stone-200" onClick={(e) => e.stopPropagation()}>
-        
-        {/* Cabecera del Modal */}
         <div className="flex justify-between items-center p-5 border-b border-stone-800 shrink-0">
           <div>
             <h3 className="text-xl font-bold text-cyan-400 tracking-wide">Novedades y Observaciones de Operación</h3>
@@ -119,9 +181,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
           <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-3 py-1 leading-none rounded-md bg-stone-900 border border-stone-800">×</button>
         </div>
 
-        {/* Contenido dividido en dos columnas (Clima a la izquierda / Energía a la derecha) */}
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-          
           {/* COLUMNA CLIMA */}
           <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-3 border-b border-blue-900/40 pb-2">
@@ -165,10 +225,8 @@ const ModalNovedades = ({ novedades, onClose }) => {
               )}
             </div>
           </div>
-
         </div>
 
-        {/* Si hubieran registros generales sin área asignada explícitamente */}
         {novOtras.length > 0 && (
           <div className="px-6 pb-6 shrink-0">
             <p className="text-xs text-stone-500 uppercase mb-2">Otras áreas / General:</p>
@@ -182,14 +240,13 @@ const ModalNovedades = ({ novedades, onClose }) => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
-// --- TARJETA CLIMA ---
-const TarjetaClima = ({ datos, onClick }) => {
+// --- TARJETA CLIMA (Ahora es un div contenedor, los botones son los cuadraditos) ---
+const TarjetaClima = ({ datos, onClickMetrica }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
   const pctKwf = datos.porcentajeOperativo;
@@ -202,10 +259,9 @@ const TarjetaClima = ({ datos, onClick }) => {
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
   return (
-    <button
-      onClick={() => onClick(datos)}
-      className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full hover:border-stone-600 transition-all text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-stone-400 w-full overflow-hidden group"
-    >
+    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full overflow-hidden">
+      
+      {/* Cabecera NO clickeable */}
       <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
         <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.nombre || 'Sala'}</h2>
         <div className="flex flex-col items-end gap-0.5 shrink-0">
@@ -217,25 +273,34 @@ const TarjetaClima = ({ datos, onClick }) => {
           </div>
         </div>
       </div>
+
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        <div
-          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-colors"
-          style={tempCritica ? {
-            backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18),
-            borderColor: hexA(COLOR_PREOCUPANTE, 0.55)
-          } : undefined}
+        
+        {/* BOTÓN 1: TEMPERATURA */}
+        <button
+          onClick={() => onClickMetrica(datos, 'temperatura')}
+          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-blue-500/60 hover:bg-blue-950/30 focus:outline-none w-full"
+          style={tempCritica ? { backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18), borderColor: hexA(COLOR_PREOCUPANTE, 0.55) } : undefined}
         >
           <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T°</p>
           <p className={`text-xl font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
             {fmt(temp, '°C')}
           </p>
-        </div>
-        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+        </button>
+
+        {/* BOTÓN 2: HUMEDAD */}
+        <button
+          onClick={() => onClickMetrica(datos, 'humedad')}
+          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-950/30 focus:outline-none w-full"
+        >
           <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">H%</p>
           <p className="text-xl font-bold text-cyan-400">{fmt(datos.humedad, '%')}</p>
-        </div>
-        <div
-          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-colors"
+        </button>
+
+        {/* BOTÓN 3: KWF */}
+        <button
+          onClick={() => onClickMetrica(datos, 'kwf')}
+          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-purple-500/60 hover:bg-purple-950/30 focus:outline-none w-full"
           style={{
             backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(30,30,35,0.8)',
             borderColor: colorKwf ? hexA(colorKwf, 0.55) : '#292524'
@@ -248,8 +313,13 @@ const TarjetaClima = ({ datos, onClick }) => {
               {fmtPorcentaje(pctKwf)} Operativo
             </p>
           )}
-        </div>
-        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+        </button>
+
+        {/* BOTÓN 4: CARGA TI */}
+        <button
+          onClick={() => onClickMetrica(datos, 'cargati')}
+          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-orange-500/60 hover:bg-orange-950/30 focus:outline-none w-full"
+        >
           <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Carga TI</p>
           <p className="text-xl font-bold text-orange-400">{fmt(datos.cargaTiKw)}</p>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
@@ -257,9 +327,10 @@ const TarjetaClima = ({ datos, onClick }) => {
               {fmtPorcentaje(datos.cargaTi)} Carga
             </p>
           )}
-        </div>
+        </button>
+
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -269,7 +340,7 @@ const TarjetaChiller = ({ datos }) => {
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full transition-all text-left overflow-hidden">
+    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full text-left overflow-hidden">
       <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
         <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'Chiller'}</h2>
         <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap flex gap-1 shadow-inner">
@@ -303,7 +374,7 @@ const TarjetaEnergia = ({ datos }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full transition-all text-left overflow-hidden">
+    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full text-left overflow-hidden">
       <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
         <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
         <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
@@ -339,7 +410,9 @@ const IcetelProgramaVista = () => {
   const [paginaActual, setPaginaActual] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-  const [salaSeleccionada, setSalaSeleccionada] = useState(null);
+  
+  // Nuevo estado unificado para manejar qué sala y qué cuadro se apretó
+  const [modalConfig, setModalConfig] = useState({ sala: null, metrica: null });
   const [mostrarNovedades, setMostrarNovedades] = useState(false);
 
   const intervaloRef = useRef(null);
@@ -428,7 +501,7 @@ const IcetelProgramaVista = () => {
   return (
     <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
       
-      {/* HEADER CON BOTÓN NOVEDADES UBICADO EN EL ESPACIO SOLICITADO */}
+      {/* HEADER */}
       <header className="mb-3 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-3 shrink-0">
         <div>
           <h1 className="text-xl lg:text-2xl font-extrabold text-stone-100 tracking-tight">Icetel Visualización</h1>
@@ -437,7 +510,6 @@ const IcetelProgramaVista = () => {
           </p>
         </div>
 
-        {/* AQUÍ ESTÁ EL BOTÓN CIAN CLARO "Novedades" EN EL ESPACIO MARCADO */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMostrarNovedades(true)}
@@ -479,7 +551,13 @@ const IcetelProgramaVista = () => {
               if (item.tipo === 'chiller') {
                 return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
               }
-              return <TarjetaClima key={item.id || `sala-${i}`} datos={item} onClick={setSalaSeleccionada} />;
+              return (
+                <TarjetaClima 
+                  key={item.id || `sala-${i}`} 
+                  datos={item} 
+                  onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })} 
+                />
+              );
             })}
           </div>
           <div className="hidden lg:block lg:flex-1 shrink-0"></div>
@@ -507,7 +585,7 @@ const IcetelProgramaVista = () => {
       </div>
 
       {/* MODALES */}
-      <ModalEquipos sala={salaSeleccionada} onClose={() => setSalaSeleccionada(null)} />
+      <ModalDetalle config={modalConfig} onClose={() => setModalConfig({ sala: null, metrica: null })} />
       {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} />}
 
     </div>
