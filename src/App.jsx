@@ -541,7 +541,7 @@ const IcetelProgramaVista = () => {
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
+  <div className="dashboard-root min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
       
       {/* HEADER */}
       <header className="mb-3 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-3 shrink-0">
