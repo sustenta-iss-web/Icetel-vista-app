@@ -57,7 +57,7 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- MODAL DINÁMICO DE DETALLE (Reemplaza a ModalEquipos) ---
+// --- MODAL DINÁMICO DE DETALLE (Actualizado para KWF y Energía) ---
 const ModalDetalle = ({ config, onClose }) => {
   const { sala, metrica } = config;
   if (!sala || !metrica) return null;
@@ -65,7 +65,6 @@ const ModalDetalle = ({ config, onClose }) => {
   let titulo = '';
   let contenido = null;
 
-  // Lógica para mostrar info diferente según el cuadro que se haya tocado
   if (metrica === 'temperatura') {
     titulo = `Temperaturas - ${sala.nombre}`;
     contenido = (
@@ -103,23 +102,34 @@ const ModalDetalle = ({ config, onClose }) => {
       </div>
     );
   } else if (metrica === 'kwf') {
-    titulo = `Detalle KWF - ${sala.nombre}`;
+    // NUEVO FORMATO DE CIRCUITOS
+    titulo = `Estado de Circuitos KWF - ${sala.nombre}`;
     contenido = (
-      <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
-        <div className="flex justify-between border-b border-stone-800/80 pb-3">
-          <span className="text-stone-400 font-medium">Capacidad Nominal (Máx KWF)</span>
-          <span className="text-stone-200 font-bold text-lg">{fmt(sala.maxKwf, ' kW')}</span>
-        </div>
-        <div className="flex justify-between border-b border-stone-800/80 pb-3">
-          <span className="text-stone-400 font-medium">KWF Actual (Calculado)</span>
-          <span className="text-purple-400 font-bold text-lg">{fmt(sala.kw, ' kW')}</span>
-        </div>
-        <div className="flex justify-between items-center pt-1">
-          <span className="text-stone-400 font-medium">Equipos Operativos</span>
-          <span className="text-purple-300 font-extrabold text-xl bg-purple-950/30 px-3 py-1 rounded-lg border border-purple-900/50">
-            {fmtPorcentaje(sala.porcentajeOperativo)}
-          </span>
-        </div>
+      <div className="space-y-3">
+        {(!sala.detalleKwf || sala.detalleKwf.length === 0) ? (
+          <p className="text-stone-500 text-sm text-center py-4">No hay detalle de circuitos registrado.</p>
+        ) : (
+          sala.detalleKwf.map((eq, i) => (
+            <div key={i} className="bg-stone-900/60 rounded-xl p-3 border border-stone-800 flex flex-col gap-2">
+              <div className="flex justify-between items-center border-b border-stone-800/80 pb-2">
+                <span className="font-bold text-stone-200">{sala.nombre} - {eq.equipo}</span>
+                <span className={`text-xs font-bold px-2 py-1 rounded-md ${eq.val === 1 ? 'bg-emerald-950/50 text-emerald-400' : eq.val === 0.5 ? 'bg-amber-950/50 text-amber-400' : 'bg-red-950/50 text-red-400'}`}>
+                  {eq.val * 100}% Op.
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1 bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner flex justify-between items-center">
+                  <span className="text-xs text-stone-500">Circuito 1</span>
+                  <span className={`text-sm font-bold ${eq.c1 === 'OK' ? 'text-emerald-400' : eq.c1 === 'NOK' ? 'text-red-400' : 'text-stone-400'}`}>{eq.c1}</span>
+                </div>
+                <div className="flex-1 bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner flex justify-between items-center">
+                  <span className="text-xs text-stone-500">Circuito 2</span>
+                  <span className={`text-sm font-bold ${eq.c2 === 'OK' ? 'text-emerald-400' : eq.c2 === 'NOK' ? 'text-red-400' : 'text-stone-400'}`}>{eq.c2}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     );
   } else if (metrica === 'cargati') {
@@ -138,6 +148,27 @@ const ModalDetalle = ({ config, onClose }) => {
           <span className="text-stone-400 font-medium">Porcentaje de Carga</span>
           <span className="text-orange-300 font-extrabold text-xl bg-orange-950/30 px-3 py-1 rounded-lg border border-orange-900/50">
             {fmtPorcentaje(sala.cargaTi)}
+          </span>
+        </div>
+      </div>
+    );
+  } else if (metrica === 'energia') {
+    // NUEVO MODAL DETALLE ENERGÍA
+    titulo = `Detalle UPS - ${sala.equipo}`;
+    contenido = (
+      <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
+        <div className="flex justify-between border-b border-stone-800/80 pb-3">
+          <span className="text-stone-400 font-medium">KVA Inicio</span>
+          <span className="text-amber-400 font-bold text-lg">{fmt(sala.kvaInicio)}</span>
+        </div>
+        <div className="flex justify-between border-b border-stone-800/80 pb-3">
+          <span className="text-stone-400 font-medium">KW Término</span>
+          <span className="text-indigo-400 font-bold text-lg">{fmt(sala.kvaTermino)}</span>
+        </div>
+        <div className="flex justify-between items-center pt-1">
+          <span className="text-stone-400 font-medium">Porcentaje Carga</span>
+          <span className="text-emerald-400 font-extrabold text-xl bg-emerald-950/30 px-3 py-1 rounded-lg border border-emerald-900/50">
+            {fmtPorcentaje(sala.porcentajeCarga)}
           </span>
         </div>
       </div>
@@ -364,8 +395,8 @@ const TarjetaChiller = ({ datos }) => {
   );
 };
 
-// --- TARJETA ENERGÍA ---
-const TarjetaEnergia = ({ datos }) => {
+// --- TARJETA ENERGÍA (Ahora sus recuadros son botones) ---
+const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
   const pctCarga = datos.porcentajeCarga;
@@ -374,7 +405,9 @@ const TarjetaEnergia = ({ datos }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full text-left overflow-hidden">
+    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full overflow-hidden">
+      
+      {/* Cabecera NO clickeable */}
       <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
         <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
         <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
@@ -383,12 +416,20 @@ const TarjetaEnergia = ({ datos }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
-        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+        
+        {/* BOTÓN 1: KW */}
+        <button
+          onClick={() => onClickMetrica(datos, 'energia')}
+          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-indigo-500/60 hover:bg-indigo-950/30 focus:outline-none w-full"
+        >
           <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">KW</p>
           <p className="text-xl font-bold text-indigo-400">{fmt(datos.kvaTermino)}</p>
-        </div>
-        <div
-          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-colors"
+        </button>
+        
+        {/* BOTÓN 2: Porcentaje Carga */}
+        <button
+          onClick={() => onClickMetrica(datos, 'energia')}
+          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-emerald-500/60 hover:bg-emerald-950/30 focus:outline-none w-full"
           style={{
             backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(30,30,35,0.8)',
             borderColor: colorCarga ? hexA(colorCarga, 0.55) : '#292524'
@@ -396,7 +437,8 @@ const TarjetaEnergia = ({ datos }) => {
         >
           <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Porcentaje Carga</p>
           <p className="text-xl font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</p>
-        </div>
+        </button>
+
       </div>
     </div>
   );
@@ -576,7 +618,14 @@ const IcetelProgramaVista = () => {
               if (!ups) {
                 return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
               }
-              return <TarjetaEnergia key={ups.id || `ups-${i}`} datos={ups} />;
+                        return (
+            <TarjetaEnergia 
+              key={ups.id || `ups-${i}`} 
+              datos={ups} 
+              onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })} 
+            />
+          );
+
             })}
           </div>
           <div className="hidden lg:block lg:flex-1 shrink-0"></div>

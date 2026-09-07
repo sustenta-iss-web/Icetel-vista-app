@@ -34,11 +34,20 @@ function doGet(e) {
     };
     // ---------------------------------------------------------------
 
-    resultado.salas = resultado.salas.map(s => {
+        resultado.salas = resultado.salas.map(s => {
       const claveSala = normalizar(s.nombre);
       const capF = capFrig[claveSala];
       const nominal = capNom[claveSala];
       const infoTi = kwfInfo[claveSala];
+      
+      if (capF && capF.count > 0 && nominal !== undefined && nominal !== null) {
+        const porcentajeOperativo = capF.suma / capF.count; 
+        const kwActual = porcentajeOperativo * nominal; 
+        s.kw = Number(kwActual.toFixed(1)); 
+        s.porcentajeOperativo = Number((porcentajeOperativo * 100).toFixed(1));
+        s.detalleKwf = capF.detalleEquipos; // <-- AÑADE ESTA LÍNEA AQUÍ
+      }
+
 
       // 1. Cálculo de KWF (Capacidad Frigorífica basada en circuitos OK / NOK / N/A)
       if (capF && capF.count > 0 && nominal !== undefined && nominal !== null) {
@@ -439,40 +448,50 @@ function numeroONull(valor) {
 function leerCapacidadFrigorifica() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Cap-Frigorifica');
   if (!sheet) return {};
-
+  
   const data = sheet.getDataRange().getValues();
   if (data.length < 2) return {};
   const headers = data[0].map(normalizar);
   const idx = {
     sala: buscarColumna(headers, ['sala']),
-    c1: buscarColumna(headers, ['circuito 1']),
-    c2: buscarColumna(headers, ['circuito 2'])
+    equipo: buscarColumna(headers, ['equipo']), // Añadimos la búsqueda del equipo
+    c1: buscarColumna(headers, ['circuito 1', 'circuito1']),
+    c2: buscarColumna(headers, ['circuito 2', 'circuito2'])
   };
-
+  
   if (idx.sala === -1 || idx.c1 === -1 || idx.c2 === -1) return {};
-
+  
   const salasCap = {};
   for (let i = 1; i < data.length; i++) {
     const fila = data[i];
-    const salaRaw = String(fila[idx.sala] || '').trim();
-    if (!salaRaw) continue;
-    const sala = normalizar(salaRaw);
-
+    const sala = String(fila[idx.sala] || '').trim();
+    if (!sala) continue;
+    
+    const equipo = idx.equipo !== -1 ? String(fila[idx.equipo] || '').trim() : 'Equipo N/A';
     const c1 = String(fila[idx.c1] || '').trim().toUpperCase();
     const c2 = String(fila[idx.c2] || '').trim().toUpperCase();
-
+    
     let val = 0;
     if (c1 === 'OK' && c2 === 'OK') val = 1.0;
     else if ((c1 === 'OK' && (c2 === 'N/A' || c2 === 'NA')) || ((c1 === 'N/A' || c1 === 'NA') && c2 === 'OK')) val = 1.0;
     else if ((c1 === 'OK' && c2 === 'NOK') || (c1 === 'NOK' && c2 === 'OK')) val = 0.5;
     else if (c1 === 'NOK' && c2 === 'NOK') val = 0.0;
     else if ((c1 === 'NOK' && (c2 === 'N/A' || c2 === 'NA')) || ((c1 === 'N/A' || c1 === 'NA') && c2 === 'NOK')) val = 0.0;
-    else if (c1 === 'OK' && !c2) val = 1.0;
+    else if (c1 === 'OK' && !c2) val = 1.0; 
     else if (c1 === 'NOK' && !c2) val = 0.0;
-
-    if (!salasCap[sala]) salasCap[sala] = { suma: 0, count: 0 };
-    salasCap[sala].suma += val;
-    salasCap[sala].count += 1;
+    
+    const salaKey = normalizar(sala);
+    if (!salasCap[salaKey]) salasCap[salaKey] = { suma: 0, count: 0, detalleEquipos: [] };
+    
+    salasCap[salaKey].suma += val;
+    salasCap[salaKey].count += 1;
+    // Guardamos el detalle estructurado por equipo
+    salasCap[salaKey].detalleEquipos.push({
+      equipo: equipo,
+      c1: c1 || 'N/A',
+      c2: c2 || 'N/A',
+      val: val
+    });
   }
   return salasCap;
 }
