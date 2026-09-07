@@ -4,17 +4,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVRISt9dGOt0lXWimGVCkH2jLmWKHL1h-CLNEBymE6Q9gp_WOeJzTTUh6cKjqynBms/exec';
 const ITEMS_POR_PAGINA = 6;
 const INTERVALO_DATOS_MS = 15000;
-const INTERVALO_PAGINA_MS = 10000;
+const INTERVALO_PAGINA_MS = 15000;
 
 // --- COLORES DE ESTADO (umbrales) ---
 const COLOR_PREOCUPANTE = '#cb2330';
 const COLOR_KWF_OK = '#e3f565';
 const COLOR_ENERGIA_OK = '#32817c';
-const UMBRAL_KWF = 50;      // % Operativo: bajo esto -> preocupante
-const UMBRAL_CARGA_UPS = 80; // % Carga: sobre esto -> preocupante
-const UMBRAL_TEMP = 28;      // °C: en o sobre esto -> preocupante
+const UMBRAL_KWF = 50;      
+const UMBRAL_CARGA_UPS = 80; 
+const UMBRAL_TEMP = 28;      
 
-// Convierte un hex "#rrggbb" a "rgba(r,g,b,alpha)"
 const hexA = (hex, alpha) => {
   const h = hex.replace('#', '');
   const r = parseInt(h.substring(0, 2), 16);
@@ -63,26 +62,26 @@ const ModalEquipos = ({ sala, onClose }) => {
   if (!sala) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-5 border-b border-slate-800">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
+      <div className="bg-[#18181b] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-5 border-b border-stone-800">
           <div>
-            <h3 className="text-xl font-bold text-slate-100">{sala.nombre}</h3>
-            <p className="text-sm text-slate-400">{(sala.equipos || []).length} equipo(s) en la sala</p>
+            <h3 className="text-xl font-bold text-stone-100">{sala.nombre}</h3>
+            <p className="text-sm text-stone-400">{(sala.equipos || []).length} equipo(s) en la sala</p>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
+          <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
         </div>
         <div className="overflow-y-auto p-5 space-y-3">
           {(!sala.equipos || sala.equipos.length === 0) && (
-            <p className="text-slate-500 text-sm text-center py-4">No hay detalle de equipos para mostrar.</p>
+            <p className="text-stone-500 text-sm text-center py-4">No hay detalle de equipos para mostrar.</p>
           )}
           {(sala.equipos || []).map((eq, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl px-4 py-3 border border-slate-700/50 flex justify-between items-center">
+            <div key={i} className="bg-stone-900/60 rounded-xl px-4 py-3 border border-stone-800 flex justify-between items-center">
               <div>
-                <span className="font-bold text-slate-200">{eq.nombre || 'Equipo'}</span>
-                {eq.tipo && <span className="ml-2 text-xs text-slate-500">({eq.tipo})</span>}
+                <span className="font-bold text-stone-200">{eq.nombre || 'Equipo'}</span>
+                {eq.tipo && <span className="ml-2 text-xs text-stone-500">({eq.tipo})</span>}
               </div>
-              <div className="flex gap-4 text-sm bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700 shadow-sm">
+              <div className="flex gap-4 text-sm bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner">
                 <span className="text-blue-400 font-bold">{fmt(eq.temperatura, '°C')}</span>
                 <span className="text-cyan-400 font-bold">{fmt(eq.humedad, '%')}</span>
               </div>
@@ -94,7 +93,102 @@ const ModalEquipos = ({ sala, onClose }) => {
   );
 };
 
-// --- TARJETA CLIMA (Acero / Plata) ---
+// --- MODAL DE NOVEDADES (Estructurado por Clima Izquierda / Energía Derecha) ---
+const ModalNovedades = ({ novedades, onClose }) => {
+  if (!novedades) return null;
+
+  // Filtramos según el área (normalizando a minúsculas para evitar errores de tipeo)
+  const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
+  const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia' ) || (n.area || '').toLowerCase().includes('energía'));
+  // Otras por si acaso hay alguna sin clasificar exacto
+  const novOtras = novedades.filter(n => {
+    const a = (n.area || '').toLowerCase();
+    return !a.includes('clima') && !a.includes('energia') && !a.includes('energía');
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
+      <div className="bg-[#141416] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col text-stone-200" onClick={(e) => e.stopPropagation()}>
+        
+        {/* Cabecera del Modal */}
+        <div className="flex justify-between items-center p-5 border-b border-stone-800 shrink-0">
+          <div>
+            <h3 className="text-xl font-bold text-cyan-400 tracking-wide">Novedades y Observaciones de Operación</h3>
+            <p className="text-sm text-stone-400">Registro reciente clasificado por área de supervisión</p>
+          </div>
+          <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-3 py-1 leading-none rounded-md bg-stone-900 border border-stone-800">×</button>
+        </div>
+
+        {/* Contenido dividido en dos columnas (Clima a la izquierda / Energía a la derecha) */}
+        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
+          
+          {/* COLUMNA CLIMA */}
+          <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-3 border-b border-blue-900/40 pb-2">
+              Clima ({novClima.length})
+            </h4>
+            <div className="space-y-3 overflow-y-auto flex-1 pr-1">
+              {novClima.length === 0 ? (
+                <p className="text-stone-500 text-xs text-center py-6">No hay novedades registradas en Clima.</p>
+              ) : (
+                novClima.map((n, i) => (
+                  <div key={i} className="bg-stone-900 border border-stone-800 p-3 rounded-lg shadow-inner space-y-1">
+                    <div className="flex justify-between text-xs text-stone-400 font-medium">
+                      <span>Sala: <strong className="text-stone-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
+                      <span className="text-cyan-500">{n.fecha}</span>
+                    </div>
+                    <p className="text-sm text-stone-200 pt-1 font-normal">{n.observacion}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* COLUMNA ENERGÍA */}
+          <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-amber-400 mb-3 border-b border-amber-900/40 pb-2">
+              Energía ({novEnergia.length})
+            </h4>
+            <div className="space-y-3 overflow-y-auto flex-1 pr-1">
+              {novEnergia.length === 0 ? (
+                <p className="text-stone-500 text-xs text-center py-6">No hay novedades registradas en Energía.</p>
+              ) : (
+                novEnergia.map((n, i) => (
+                  <div key={i} className="bg-stone-900 border border-stone-800 p-3 rounded-lg shadow-inner space-y-1">
+                    <div className="flex justify-between text-xs text-stone-400 font-medium">
+                      <span>Sala: <strong className="text-stone-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
+                      <span className="text-cyan-500">{n.fecha}</span>
+                    </div>
+                    <p className="text-sm text-stone-200 pt-1 font-normal">{n.observacion}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Si hubieran registros generales sin área asignada explícitamente */}
+        {novOtras.length > 0 && (
+          <div className="px-6 pb-6 shrink-0">
+            <p className="text-xs text-stone-500 uppercase mb-2">Otras áreas / General:</p>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {novOtras.map((n, i) => (
+                <div key={i} className="bg-stone-900 border border-stone-800 p-2 rounded text-xs flex justify-between">
+                  <span><strong>{n.area || 'General'}</strong> - {n.sala}: {n.observacion}</span>
+                  <span className="text-cyan-500">{n.fecha}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+
+// --- TARJETA CLIMA ---
 const TarjetaClima = ({ datos, onClick }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
@@ -110,44 +204,44 @@ const TarjetaClima = ({ datos, onClick }) => {
   return (
     <button
       onClick={() => onClick(datos)}
-      className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg border border-slate-700 border-t-[3px] border-t-slate-400/60 p-2.5 flex flex-col justify-between h-full hover:shadow-xl hover:border-slate-500 transition-all text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400 w-full overflow-hidden"
+      className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full hover:border-stone-600 transition-all text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-stone-400 w-full overflow-hidden group"
     >
-      <div className="flex justify-between items-center mb-2 border-b border-slate-700/80 pb-1.5 shrink-0">
-        <h2 className="text-sm font-bold text-slate-100 truncate">{datos.nombre || 'Sala'}</h2>
+      <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
+        <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.nombre || 'Sala'}</h2>
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <div className="text-[9px] font-medium text-slate-400 bg-slate-950/60 px-1.5 py-0.5 rounded-md border border-slate-800 whitespace-nowrap">
-            Max KWF: <span className="text-slate-200 font-bold">{fmt(datos.maxKwf)}</span>
+          <div className="text-[9px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
+            Max KWF: <span className="text-stone-200 font-bold">{fmt(datos.maxKwf)}</span>
           </div>
-          <div className="text-[9px] font-medium text-slate-400 bg-slate-950/60 px-1.5 py-0.5 rounded-md border border-slate-800 whitespace-nowrap">
-            Max TI: <span className="text-slate-200 font-bold">{fmt(datos.maxTi)}</span>
+          <div className="text-[9px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
+            Max TI: <span className="text-stone-200 font-bold">{fmt(datos.maxTi)}</span>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
         <div
-          className="bg-blue-950/30 p-2 rounded-lg border border-blue-900/50 flex flex-col justify-center text-center transition-colors"
+          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-colors"
           style={tempCritica ? {
             backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18),
             borderColor: hexA(COLOR_PREOCUPANTE, 0.55)
           } : undefined}
         >
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T°</p>
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T°</p>
           <p className={`text-xl font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
             {fmt(temp, '°C')}
           </p>
         </div>
-        <div className="bg-cyan-950/30 p-2 rounded-lg border border-cyan-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
+        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">H%</p>
           <p className="text-xl font-bold text-cyan-400">{fmt(datos.humedad, '%')}</p>
         </div>
         <div
-          className="p-2 rounded-lg border flex flex-col justify-center text-center transition-colors"
+          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-colors"
           style={{
-            backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(88,28,135,0.18)',
-            borderColor: colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88,28,135,0.5)'
+            backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(30,30,35,0.8)',
+            borderColor: colorKwf ? hexA(colorKwf, 0.55) : '#292524'
           }}
         >
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">KWF</p>
           <p className="text-xl font-bold" style={{ color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</p>
           {hayDatoKwf && (
             <p className="text-[9px] font-bold mt-0.5" style={{ color: hexA(colorKwf, 0.85) }}>
@@ -155,11 +249,11 @@ const TarjetaClima = ({ datos, onClick }) => {
             </p>
           )}
         </div>
-        <div className="bg-orange-950/30 p-2 rounded-lg border border-orange-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carga TI</p>
+        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Carga TI</p>
           <p className="text-xl font-bold text-orange-400">{fmt(datos.cargaTiKw)}</p>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
-            <p className="text-[9px] font-bold text-orange-300/80 mt-0.5">
+            <p className="text-[9px] font-bold text-orange-300/70 mt-0.5">
               {fmtPorcentaje(datos.cargaTi)} Carga
             </p>
           )}
@@ -169,29 +263,29 @@ const TarjetaClima = ({ datos, onClick }) => {
   );
 };
 
-// --- TARJETA CHILLER (Acero / Plata) ---
+// --- TARJETA CHILLER ---
 const TarjetaChiller = ({ datos }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg border border-slate-700 border-t-[3px] border-t-slate-400/60 p-2.5 flex flex-col justify-between h-full w-full transition-all hover:shadow-xl hover:border-slate-500 text-left overflow-hidden">
-      <div className="flex justify-between items-center mb-2 border-b border-slate-700/80 pb-1.5 shrink-0">
-        <h2 className="text-sm font-bold text-slate-100 truncate">{datos.equipo || 'Chiller'}</h2>
-        <div className="text-[10px] font-medium text-slate-400 bg-slate-950/60 px-1.5 py-0.5 rounded-md border border-slate-800 whitespace-nowrap flex gap-1">
+    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full transition-all text-left overflow-hidden">
+      <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
+        <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'Chiller'}</h2>
+        <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap flex gap-1 shadow-inner">
           <span>Comp:</span>
           {statusList.length > 0 ? statusList.map((st, idx) => (
-            <span key={idx} className="font-bold text-slate-200">[{st || '—'}]</span>
-          )) : <span className="text-slate-600">—</span>}
+            <span key={idx} className="font-bold text-stone-300">[{st || '—'}]</span>
+          )) : <span className="text-stone-600">—</span>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        <div className="bg-teal-950/30 p-2 rounded-lg border border-teal-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Surtidor</p>
+        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T° Surtidor</p>
           <p className="text-xl font-bold text-teal-400">{fmt(datos.tempSurtidor, '°C')}</p>
         </div>
-        <div className="bg-sky-950/30 p-2 rounded-lg border border-sky-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">T° Retorno</p>
+        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T° Retorno</p>
           <p className="text-xl font-bold text-sky-400">{fmt(datos.tempRetorno, '°C')}</p>
         </div>
       </div>
@@ -199,7 +293,7 @@ const TarjetaChiller = ({ datos }) => {
   );
 };
 
-// --- TARJETA ENERGÍA (Bronce / Cobre) ---
+// --- TARJETA ENERGÍA ---
 const TarjetaEnergia = ({ datos }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
@@ -209,27 +303,27 @@ const TarjetaEnergia = ({ datos }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div className="bg-gradient-to-br from-stone-800 to-stone-900 rounded-xl shadow-lg border border-stone-700 border-t-[3px] border-t-amber-600/60 p-2.5 flex flex-col h-full w-full transition-all hover:shadow-xl hover:border-amber-700/50 text-left overflow-hidden">
-      <div className="flex justify-between items-center mb-2 border-b border-stone-700/80 pb-1.5 shrink-0">
-        <h2 className="text-sm font-bold text-stone-100 truncate">{datos.equipo || 'UPS'}</h2>
-        <div className="text-[10px] font-medium text-stone-400 bg-stone-950/60 px-1.5 py-0.5 rounded-md border border-stone-800 whitespace-nowrap">
-          KVA: <span className="text-stone-200 font-bold">{fmt(datos.kvaInicio)}</span>
+    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full transition-all text-left overflow-hidden">
+      <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
+        <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
+        <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
+          KVA: <span className="text-amber-300 font-bold">{fmt(datos.kvaInicio)}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
-        <div className="bg-indigo-950/30 p-2 rounded-lg border border-indigo-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">KW</p>
+        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">KW</p>
           <p className="text-xl font-bold text-indigo-400">{fmt(datos.kvaTermino)}</p>
         </div>
         <div
-          className="p-2 rounded-lg border flex flex-col justify-center text-center transition-colors"
+          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-colors"
           style={{
-            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(6,95,70,0.18)',
-            borderColor: colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6,95,70,0.5)'
+            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(30,30,35,0.8)',
+            borderColor: colorCarga ? hexA(colorCarga, 0.55) : '#292524'
           }}
         >
-          <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Porcentaje Carga</p>
+          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Porcentaje Carga</p>
           <p className="text-xl font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</p>
         </div>
       </div>
@@ -241,10 +335,12 @@ const TarjetaEnergia = ({ datos }) => {
 const IcetelProgramaVista = () => {
   const [datosClima, setDatosClima] = useState([]);
   const [datosEnergia, setDatosEnergia] = useState([]);
+  const [novedades, setNovedades] = useState([]);
   const [paginaActual, setPaginaActual] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [salaSeleccionada, setSalaSeleccionada] = useState(null);
+  const [mostrarNovedades, setMostrarNovedades] = useState(false);
 
   const intervaloRef = useRef(null);
 
@@ -259,7 +355,7 @@ const IcetelProgramaVista = () => {
 
       chillers.sort((a, b) => (a.equipo || '').localeCompare(b.equipo || ''));
 
-      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2;
+      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; 
       let salasModificadas = [...salas];
 
       while (salasModificadas.length < indiceInicioPanel3) {
@@ -273,6 +369,7 @@ const IcetelProgramaVista = () => {
 
       setDatosClima(climaCombinado);
       setDatosEnergia(json.energia || json.ups || []);
+      setNovedades(json.novedades || []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -329,34 +426,49 @@ const IcetelProgramaVista = () => {
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-slate-950 p-4 flex flex-col font-sans">
-      <header className="mb-3 flex flex-col gap-2 lg:flex-row lg:justify-between lg:items-end shrink-0">
+    <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
+      
+      {/* HEADER CON BOTÓN NOVEDADES UBICADO EN EL ESPACIO SOLICITADO */}
+      <header className="mb-3 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-3 shrink-0">
         <div>
-          <h1 className="text-xl lg:text-2xl font-extrabold text-slate-100 tracking-tight">Icetel Visualización</h1>
-          <p className="text-slate-400 text-sm font-medium mt-0.5">
-            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (rotación cada 10s · usa ← → para cambiar)`}
+          <h1 className="text-xl lg:text-2xl font-extrabold text-stone-100 tracking-tight">Icetel Visualización</h1>
+          <p className="text-stone-400 text-sm font-medium mt-0.5">
+            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (rotación cada 15s · usa ← → para cambiar)`}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <span className="relative flex h-3 w-3">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${error ? 'bg-red-500' : 'bg-emerald-500'} opacity-75`}></span>
-            <span className={`relative inline-flex rounded-full h-3 w-3 ${error ? 'bg-red-600' : 'bg-emerald-500'}`}></span>
-          </span>
-          <span className="text-sm font-bold text-slate-400">{error ? 'Error de conexión' : 'Sistema Activo'}</span>
+
+        {/* AQUÍ ESTÁ EL BOTÓN CIAN CLARO "Novedades" EN EL ESPACIO MARCADO */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMostrarNovedades(true)}
+            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-2 rounded-xl shadow-lg border border-cyan-300 transition-all text-sm flex items-center gap-2 cursor-pointer active:scale-95"
+          >
+            <span className="w-2 h-2 rounded-full bg-slate-950 animate-pulse"></span>
+            Novedades ({novedades.length})
+          </button>
+
+          <div className="flex items-center space-x-2 bg-[#141416] px-3 py-2 rounded-xl border border-stone-800 shadow-inner">
+            <span className="relative flex h-3 w-3">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${error ? 'bg-red-500' : 'bg-emerald-500'} opacity-75`}></span>
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${error ? 'bg-red-600' : 'bg-emerald-500'}`}></span>
+            </span>
+            <span className="text-sm font-bold text-stone-300">{error ? 'Error de conexión' : 'EN LÍNEA'}</span>
+          </div>
         </div>
       </header>
 
       {error && (
-        <div className="mb-3 bg-red-950/50 border border-red-900/50 text-red-400 text-sm rounded-xl px-4 py-2 shrink-0">
+        <div className="mb-3 bg-red-950/40 border border-red-900/50 text-red-400 text-sm rounded-xl px-4 py-2 shrink-0 shadow-lg">
           Error: {error}
         </div>
       )}
 
+      {/* CONTENEDOR PRINCIPAL */}
       <div className="flex flex-col lg:flex-row flex-1 gap-4 lg:gap-6 min-h-0">
 
         {/* CLIMA */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-lg font-bold mb-2 border-b-2 border-slate-700 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-slate-400 to-slate-200 drop-shadow-sm">
+          <h2 className="text-lg font-bold mb-2 border-b-2 border-stone-700/80 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-stone-400 to-stone-200 drop-shadow-sm">
             Clima
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
@@ -373,13 +485,12 @@ const IcetelProgramaVista = () => {
           <div className="hidden lg:block lg:flex-1 shrink-0"></div>
         </div>
 
-        {/* DIVISOR VERTICAL */}
-        <div className="hidden lg:block w-[2px] bg-slate-800 rounded-full my-4 shadow-[1px_0_0_0_rgba(255,255,255,0.05)]"></div>
-        <div className="block lg:hidden h-[2px] bg-slate-800 rounded-full shadow-[0_1px_0_0_rgba(255,255,255,0.05)]"></div>
+        <div className="hidden lg:block w-[2px] bg-stone-800/80 rounded-full my-4"></div>
+        <div className="block lg:hidden h-[2px] bg-stone-800/80 rounded-full"></div>
 
         {/* ENERGÍA */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-lg font-bold mb-2 border-b-2 border-stone-700 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-400 drop-shadow-sm">
+          <h2 className="text-lg font-bold mb-2 border-b-2 border-amber-800/50 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-300 drop-shadow-sm">
             Energía
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
@@ -395,7 +506,10 @@ const IcetelProgramaVista = () => {
 
       </div>
 
+      {/* MODALES */}
       <ModalEquipos sala={salaSeleccionada} onClose={() => setSalaSeleccionada(null)} />
+      {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} />}
+
     </div>
   );
 };
