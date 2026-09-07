@@ -6,6 +6,22 @@ const ITEMS_POR_PAGINA = 6;
 const INTERVALO_DATOS_MS = 15000;
 const INTERVALO_PAGINA_MS = 10000;
 
+// --- COLORES DE ESTADO (umbrales) ---
+const COLOR_PREOCUPANTE = '#cb2330';
+const COLOR_KWF_OK = '#e3f565';
+const COLOR_ENERGIA_OK = '#32817c';
+const UMBRAL_KWF = 40;      // % Operativo: bajo esto -> preocupante
+const UMBRAL_CARGA_UPS = 80; // % Carga: sobre esto -> preocupante
+
+// Convierte un hex "#rrggbb" a "rgba(r,g,b,alpha)"
+const hexA = (hex, alpha) => {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
 const fmtPorcentaje = (valor) => {
@@ -81,6 +97,11 @@ const ModalEquipos = ({ sala, onClose }) => {
 const TarjetaClima = ({ datos, onClick }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
+  const pctKwf = datos.porcentajeOperativo;
+  const hayDatoKwf = pctKwf !== undefined && pctKwf !== null;
+  const kwfCritico = hayDatoKwf && pctKwf < UMBRAL_KWF;
+  const colorKwf = hayDatoKwf ? (kwfCritico ? COLOR_PREOCUPANTE : COLOR_KWF_OK) : null;
+
   return (
     <button
       onClick={() => onClick(datos)}
@@ -106,12 +127,18 @@ const TarjetaClima = ({ datos, onClick }) => {
           <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">H%</p>
           <p className="text-xl font-bold text-cyan-400">{fmt(datos.humedad, '%')}</p>
         </div>
-        <div className="bg-purple-950/30 p-2 rounded-lg border border-purple-900/50 flex flex-col justify-center text-center">
+        <div
+          className="p-2 rounded-lg border flex flex-col justify-center text-center transition-colors"
+          style={{
+            backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(88,28,135,0.18)',
+            borderColor: colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88,28,135,0.5)'
+          }}
+        >
           <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KWF</p>
-          <p className="text-xl font-bold text-purple-400">{fmt(datos.kw)}</p>
-          {datos.porcentajeOperativo !== undefined && (
-            <p className="text-[9px] font-bold text-purple-300/80 mt-0.5">
-              {fmtPorcentaje(datos.porcentajeOperativo)} Operativo
+          <p className="text-xl font-bold" style={{ color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</p>
+          {hayDatoKwf && (
+            <p className="text-[9px] font-bold mt-0.5" style={{ color: hexA(colorKwf, 0.85) }}>
+              {fmtPorcentaje(pctKwf)} Operativo
             </p>
           )}
         </div>
@@ -163,6 +190,11 @@ const TarjetaChiller = ({ datos }) => {
 const TarjetaEnergia = ({ datos }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
+  const pctCarga = datos.porcentajeCarga;
+  const hayDatoCarga = pctCarga !== undefined && pctCarga !== null;
+  const cargaCritica = hayDatoCarga && pctCarga >= UMBRAL_CARGA_UPS;
+  const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
+
   return (
     <div className="bg-gradient-to-br from-stone-800 to-stone-900 rounded-xl shadow-lg border border-stone-700 border-t-[3px] border-t-amber-600/60 p-2.5 flex flex-col h-full w-full transition-all hover:shadow-xl hover:border-amber-700/50 text-left overflow-hidden">
       <div className="flex justify-between items-center mb-2 border-b border-stone-700/80 pb-1.5 shrink-0">
@@ -177,9 +209,15 @@ const TarjetaEnergia = ({ datos }) => {
           <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">KW</p>
           <p className="text-xl font-bold text-indigo-400">{fmt(datos.kvaTermino)}</p>
         </div>
-        <div className="bg-emerald-950/30 p-2 rounded-lg border border-emerald-900/50 flex flex-col justify-center text-center">
+        <div
+          className="p-2 rounded-lg border flex flex-col justify-center text-center transition-colors"
+          style={{
+            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(6,95,70,0.18)',
+            borderColor: colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6,95,70,0.5)'
+          }}
+        >
           <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Porcentaje Carga</p>
-          <p className="text-xl font-bold text-emerald-400">{fmtPorcentaje(datos.porcentajeCarga)}</p>
+          <p className="text-xl font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</p>
         </div>
       </div>
     </div>
@@ -208,7 +246,7 @@ const IcetelProgramaVista = () => {
 
       chillers.sort((a, b) => (a.equipo || '').localeCompare(b.equipo || ''));
 
-      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; 
+      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2;
       let salasModificadas = [...salas];
 
       while (salasModificadas.length < indiceInicioPanel3) {
