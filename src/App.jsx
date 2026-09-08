@@ -416,7 +416,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   );
 };
 
-// --- VISTA PRINCIPAL ---
+// --- VISTA PRINCIPAL CORREGIDA ---
 const IcetelProgramaVista = () => {
   const [datosClima, setDatosClima] = useState([]);
   const [datosEnergia, setDatosEnergia] = useState([]);
@@ -492,44 +492,44 @@ const IcetelProgramaVista = () => {
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="w-full bg-slate-950 p-3 font-sans text-slate-200" style={{ height: '100vh', overflow: 'hidden' }}>
+    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#020617', padding: '12px', boxSizing: 'border-box', overflow: 'hidden', color: '#f1f5f9', fontFamily: 'sans-serif' }}>
       
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-2 pb-1 border-b border-slate-800" style={{ height: '45px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', height: '10%' }}>
         <div>
-          <h1 className="text-base font-extrabold text-slate-100">Icetel Visualización</h1>
-          <p className="text-[10px] text-slate-400">
+          <h1 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Icetel Visualización</h1>
+          <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0 }}>
             {cargando ? 'Cargando...' : `Panel ${paginaActual + 1} de ${totalPaginas} (Rotación 10s)`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button
             onClick={() => setMostrarNovedades(true)}
-            className="bg-cyan-500 text-slate-950 font-bold px-3 py-1 rounded text-xs cursor-pointer"
+            style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 'bold', padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px' }}
           >
             Novedades ({novedades.length})
           </button>
-          <div className="bg-slate-900 px-2 py-1 rounded border border-slate-800 text-[10px] font-bold text-slate-300">
+          <div style={{ backgroundColor: '#0f172a', padding: '6px 10px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '11px', fontWeight: 'bold', color: error ? '#ef4444' : '#10b981' }}>
             {error ? 'Error' : 'EN LÍNEA'}
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="mb-2 bg-red-950/40 border border-red-900 text-red-400 text-xs rounded p-1.5">
+        <div style={{ marginBottom: '8px', backgroundColor: 'rgba(127, 29, 29, 0.4)', border: '1px solid #991b1b', color: '#f87171', fontSize: '12px', padding: '6px', borderRadius: '4px' }}>
           Error: {error}
         </div>
       )}
 
-      {/* CONTENEDOR DE SECCIONES (Clima a la izquierda, Energía a la derecha usando porcentajes fijos compatibles) */}
-      <div className="flex flex-row gap-3" style={{ height: 'calc(100vh - 65px)' }}>
+      {/* CONTENEDOR PRINCIPAL (Clima y Energía lado a lado por porcentaje) */}
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', height: '88%', width: '100%' }}>
         
-        {/* CLIMA */}
-        <div className="flex-1 flex flex-col">
-          <h2 className="text-xs font-bold mb-1 uppercase tracking-wider text-slate-300 border-b border-slate-700 pb-0.5">
+        {/* COLUMNA CLIMA */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0' }}>
             Clima
           </h2>
-          <div className="grid grid-cols-3 gap-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', flex: 1 }}>
             {climaEnPantalla.map((item, i) => {
               if (!item) return <div key={`empty-${i}`}></div>;
               if (item.tipo === 'chiller') {
@@ -546,14 +546,15 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        <div className="w-[1px] bg-slate-800 my-1"></div>
+        {/* LÍNEA DIVISORIA */}
+        <div style={{ width: '2px', backgroundColor: '#1e293b', borderRadius: '2px' }}></div>
 
-        {/* ENERGÍA */}
-        <div className="flex-1 flex flex-col">
-          <h2 className="text-xs font-bold mb-1 uppercase tracking-wider text-amber-400 border-b border-amber-800/50 pb-0.5">
+        {/* COLUMNA ENERGÍA */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0' }}>
             Energía
           </h2>
-          <div className="grid grid-cols-3 gap-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', flex: 1 }}>
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) return <div key={`empty-ups-${i}`}></div>;
               return (
