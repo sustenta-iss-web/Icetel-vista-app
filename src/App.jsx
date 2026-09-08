@@ -57,15 +57,18 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- HOOK: layout responsive (reemplaza los breakpoints de Tailwind lg:) ---
+// --- HOOK: layout responsive ---
+// Se basa SOLO en el ancho de ventana (igual que los breakpoints sm/lg de Tailwind
+// del diseño original), no en la orientación. Así un celular en landscape (ancho
+// típico ~700-900px) no se confunde con una TV real (ancho >=1024px).
 const useResponsiveLayout = () => {
   const calcular = () => {
-    if (typeof window === 'undefined') return { esMovilVertical: false, ancho: 1200 };
+    if (typeof window === 'undefined') return { ancho: 1200, columnas: 3, esPantallaGrande: true };
     const ancho = window.innerWidth;
-    const alto = window.innerHeight;
-    // "Móvil vertical" = pantalla angosta o en modo retrato (no la TV, que siempre es ancha)
-    const esMovilVertical = ancho < 900 || alto > ancho;
-    return { esMovilVertical, ancho };
+    let columnas = 2;
+    if (ancho >= 640) columnas = 3; // tablet / celular horizontal / TV
+    const esPantallaGrande = ancho >= 1024; // TV o desktop: layout fijo sin scroll de página
+    return { ancho, columnas, esPantallaGrande };
   };
   const [layout, setLayout] = useState(calcular);
   useEffect(() => {
@@ -206,7 +209,7 @@ const ModalDetalle = ({ config, onClose }) => {
 };
 
 // --- MODAL DE NOVEDADES ---
-const ModalNovedades = ({ novedades, onClose, esMovilVertical }) => {
+const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
   if (!novedades) return null;
   const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
   const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia') || (n.area || '').toLowerCase().includes('energía'));
@@ -225,7 +228,7 @@ const ModalNovedades = ({ novedades, onClose, esMovilVertical }) => {
           </div>
           <button onClick={onClose} style={{ background: '#020617', border: '1px solid #1e293b', color: '#64748b', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 10px', borderRadius: '6px' }}>×</button>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'grid', gridTemplateColumns: esMovilVertical ? '1fr' : '1fr 1fr', gap: '16px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'grid', gridTemplateColumns: columnaUnica ? '1fr' : '1fr 1fr', gap: '16px' }}>
           <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
             <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px', borderBottom: '1px solid rgba(59, 130, 246, 0.3)', paddingBottom: '6px', margin: '0 0 8px 0' }}>Clima ({novClima.length})</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
@@ -423,9 +426,13 @@ const IcetelProgramaVista = () => {
   const [mostrarNovedades, setMostrarNovedades] = useState(false);
 
   const intervaloRef = useRef(null);
-  const { esMovilVertical } = useResponsiveLayout();
+  const { columnas, esPantallaGrande } = useResponsiveLayout();
 
-  // --- CONTROL DINÁMICO DE VIEWPORT Y ZOOM (restaurado: crítico para TV Android 7) ---
+  // --- CONTROL DINÁMICO DE VIEWPORT Y ZOOM ---
+  // El truco de "alejar" el zoom (width=1200, initial-scale=0.7) es SOLO para la
+  // TV real: pantalla grande (>=1024px) Y en landscape. Un celular en landscape
+  // (ancho típico ~700-900px) NO entra en esPantallaGrande, así que conserva su
+  // escala normal y se puede leer sin necesidad de zoom manual.
   useEffect(() => {
     const ajustarPantalla = () => {
       let viewport = document.querySelector('meta[name="viewport"]');
@@ -434,16 +441,20 @@ const IcetelProgramaVista = () => {
         viewport.name = 'viewport';
         document.head.appendChild(viewport);
       }
-      const esPantallaAnchaHorizontal = window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 900;
-      if (esPantallaAnchaHorizontal) {
-        viewport.setAttribute("content", "width=1200, initial-scale=0.2, maximum-scale=1.0, user-scalable=no");
+      const esTvLandscape = window.innerWidth >= 1024 && window.matchMedia("(orientation: landscape)").matches;
+      if (esTvLandscape) {
+        viewport.setAttribute("content", "width=1200, initial-scale=0.7, maximum-scale=1.0, user-scalable=no");
       } else {
         viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
       }
     };
     ajustarPantalla();
     window.addEventListener("resize", ajustarPantalla);
-    return () => window.removeEventListener("resize", ajustarPantalla);
+    window.addEventListener("orientationchange", ajustarPantalla);
+    return () => {
+      window.removeEventListener("resize", ajustarPantalla);
+      window.removeEventListener("orientationchange", ajustarPantalla);
+    };
   }, []);
 
   const cargarDatos = useCallback(async () => {
@@ -525,18 +536,34 @@ const IcetelProgramaVista = () => {
   const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
-  // Grid: en TV/desktop 3 columnas x 2 filas; en móvil vertical 2 columnas x 3 filas
-  const gridCols = esMovilVertical ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
-  const gridRows = esMovilVertical ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)';
-  const alturaMinGrid = esMovilVertical ? '480px' : '0px';
+  const gridColsCss = `repeat(${columnas}, 1fr)`;
+  // TV (pantalla grande): 2 filas fijas, todo visible sin scroll (así funciona la
+  // rotación automática de páginas). En cualquier pantalla más chica (celular
+  // vertical u horizontal, tablet): filas automáticas que crecen con el
+  // contenido, y el contenedor scrollea si no entra todo.
+  const gridRowsCss = esPantallaGrande ? 'repeat(2, 1fr)' : undefined;
+  const gridAutoRowsCss = esPantallaGrande ? undefined : '150px';
 
   return (
-    <div style={{ width: '100%', minHeight: '100dvh', backgroundColor: '#020617', padding: esMovilVertical ? '10px' : '14px', boxSizing: 'border-box', color: '#f1f5f9', fontFamily: 'sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      width: '100%',
+      height: esPantallaGrande ? '100dvh' : 'auto',
+      minHeight: '100dvh',
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      backgroundColor: '#020617',
+      padding: esPantallaGrande ? '14px' : '10px',
+      boxSizing: 'border-box',
+      color: '#f1f5f9',
+      fontFamily: 'sans-serif',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
 
       {/* HEADER */}
-      <div style={{ display: 'flex', flexDirection: esMovilVertical ? 'column' : 'row', justifyContent: 'space-between', alignItems: esMovilVertical ? 'flex-start' : 'center', gap: '8px', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', flexDirection: esPantallaGrande ? 'row' : 'column', justifyContent: 'space-between', alignItems: esPantallaGrande ? 'center' : 'flex-start', gap: '8px', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', flexShrink: 0 }}>
         <div>
-          <h1 style={{ fontSize: esMovilVertical ? '16px' : '18px', fontWeight: 'bold', margin: 0 }}>Icetel Visualización</h1>
+          <h1 style={{ fontSize: esPantallaGrande ? '18px' : '16px', fontWeight: 'bold', margin: 0 }}>Icetel Visualización</h1>
           <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0 }}>
             {cargando ? 'Cargando...' : `Panel ${paginaActual + 1} de ${totalPaginas} (Rotación 10s)`}
           </p>
@@ -563,15 +590,22 @@ const IcetelProgramaVista = () => {
         </div>
       )}
 
-      {/* CONTENEDOR PRINCIPAL: columna en móvil vertical, fila en TV/desktop */}
-      <div style={{ display: 'flex', flexDirection: esMovilVertical ? 'column' : 'row', gap: esMovilVertical ? '18px' : '16px', flex: 1, minHeight: 0, width: '100%' }}>
+      {/* CONTENEDOR PRINCIPAL: columna apilada en pantallas chicas, fila en TV */}
+      <div style={{
+        display: 'flex',
+        flexDirection: esPantallaGrande ? 'row' : 'column',
+        gap: esPantallaGrande ? '16px' : '18px',
+        flex: esPantallaGrande ? 1 : undefined,
+        minHeight: esPantallaGrande ? 0 : undefined,
+        width: '100%'
+      }}>
 
         {/* COLUMNA CLIMA */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div style={{ flex: esPantallaGrande ? 1 : undefined, display: 'flex', flexDirection: 'column', minHeight: esPantallaGrande ? 0 : undefined }}>
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gridTemplateRows: gridRows, gap: '8px', flex: 1, minHeight: alturaMinGrid }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridColsCss, gridTemplateRows: gridRowsCss, gridAutoRows: gridAutoRowsCss, gap: '8px', flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined }}>
             {climaEnPantalla.map((item, i) => {
               if (!item) return <div key={`empty-${i}`}></div>;
               if (item.tipo === 'chiller') {
@@ -588,18 +622,18 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        {/* DIVISORIA: vertical en TV, horizontal en móvil */}
-        <div style={esMovilVertical
-          ? { height: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }
-          : { width: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }}
+        {/* DIVISORIA: vertical en TV, horizontal apilado en pantallas chicas */}
+        <div style={esPantallaGrande
+          ? { width: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }
+          : { height: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }}
         ></div>
 
         {/* COLUMNA ENERGÍA */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div style={{ flex: esPantallaGrande ? 1 : undefined, display: 'flex', flexDirection: 'column', minHeight: esPantallaGrande ? 0 : undefined }}>
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Energía
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gridTemplateRows: gridRows, gap: '8px', flex: 1, minHeight: alturaMinGrid }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridColsCss, gridTemplateRows: gridRowsCss, gridAutoRows: gridAutoRowsCss, gap: '8px', flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined }}>
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) return <div key={`empty-ups-${i}`}></div>;
               return (
@@ -616,7 +650,7 @@ const IcetelProgramaVista = () => {
       </div>
 
       <ModalDetalle config={modalConfig} onClose={() => setModalConfig({ sala: null, metrica: null })} />
-      {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} esMovilVertical={esMovilVertical} />}
+      {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} columnaUnica={!esPantallaGrande && columnas < 3} />}
     </div>
   );
 };
