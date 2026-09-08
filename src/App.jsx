@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 // --- CONFIGURACIÓN ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVRISt9dGOt0lXWimGVCkH2jLmWKHL1h-CLNEBymE6Q9gp_WOeJzTTUh6cKjqynBms/exec';
 const ITEMS_POR_PAGINA = 6;
 const INTERVALO_DATOS_MS = 15000;
-const INTERVALO_PAGINA_MS = 15000;
+const INTERVALO_PAGINA_MS = 10000;
 
 // --- COLORES DE ESTADO (umbrales) ---
 const COLOR_PREOCUPANTE = '#cb2330';
@@ -70,12 +71,12 @@ const ModalDetalle = ({ config, onClose }) => {
     contenido = (
       <div className="space-y-3">
         {(!sala.equipos || sala.equipos.length === 0) ? (
-          <p className="text-stone-500 text-sm text-center py-4">No hay equipos registrados.</p>
+          <p className="text-slate-500 text-sm text-center py-4">No hay equipos registrados.</p>
         ) : (
           sala.equipos.map((eq, i) => (
-            <div key={i} className="bg-stone-900/60 rounded-xl px-4 py-3 border border-stone-800 flex justify-between items-center">
-              <span className="font-bold text-stone-200">{eq.nombre || 'Equipo'}</span>
-              <div className="flex gap-4 text-sm bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner">
+            <div key={i} className="bg-slate-900/60 rounded-xl px-4 py-3 border border-slate-800 flex justify-between items-center">
+              <span className="font-bold text-slate-200">{eq.nombre || 'Equipo'}</span>
+              <div className="flex gap-4 text-sm bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner">
                 <span className="text-blue-400 font-bold">{fmt(eq.temperatura, '°C')}</span>
               </div>
             </div>
@@ -88,12 +89,12 @@ const ModalDetalle = ({ config, onClose }) => {
     contenido = (
       <div className="space-y-3">
         {(!sala.equipos || sala.equipos.length === 0) ? (
-          <p className="text-stone-500 text-sm text-center py-4">No hay equipos registrados.</p>
+          <p className="text-slate-500 text-sm text-center py-4">No hay equipos registrados.</p>
         ) : (
           sala.equipos.map((eq, i) => (
-            <div key={i} className="bg-stone-900/60 rounded-xl px-4 py-3 border border-stone-800 flex justify-between items-center">
-              <span className="font-bold text-stone-200">{eq.nombre || 'Equipo'}</span>
-              <div className="flex gap-4 text-sm bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner">
+            <div key={i} className="bg-slate-900/60 rounded-xl px-4 py-3 border border-slate-800 flex justify-between items-center">
+              <span className="font-bold text-slate-200">{eq.nombre || 'Equipo'}</span>
+              <div className="flex gap-4 text-sm bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner">
                 <span className="text-cyan-400 font-bold">{fmt(eq.humedad, '%')}</span>
               </div>
             </div>
@@ -106,24 +107,24 @@ const ModalDetalle = ({ config, onClose }) => {
     contenido = (
       <div className="space-y-3">
         {(!sala.detalleKwf || sala.detalleKwf.length === 0) ? (
-          <p className="text-stone-500 text-sm text-center py-4">No hay detalle de circuitos registrado.</p>
+          <p className="text-slate-500 text-sm text-center py-4">No hay detalle de circuitos registrado.</p>
         ) : (
           sala.detalleKwf.map((eq, i) => (
-            <div key={i} className="bg-stone-900/60 rounded-xl p-3 border border-stone-800 flex flex-col gap-2">
-              <div className="flex justify-between items-center border-b border-stone-800/80 pb-2">
-                <span className="font-bold text-stone-200">{sala.nombre} - {eq.equipo}</span>
+            <div key={i} className="bg-slate-900/60 rounded-xl p-3 border border-slate-800 flex flex-col gap-2">
+              <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
+                <span className="font-bold text-slate-200">{sala.nombre} - {eq.equipo}</span>
                 <span className={`text-xs font-bold px-2 py-1 rounded-md ${eq.val === 1 ? 'bg-emerald-950/50 text-emerald-400' : eq.val === 0.5 ? 'bg-amber-950/50 text-amber-400' : 'bg-red-950/50 text-red-400'}`}>
                   {eq.val * 100}% Op.
                 </span>
               </div>
               <div className="flex gap-2">
-                <div className="flex-1 bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner flex justify-between items-center">
-                  <span className="text-xs text-stone-500">Circuito 1</span>
-                  <span className={`text-sm font-bold ${eq.c1 === 'OK' ? 'text-emerald-400' : eq.c1 === 'NOK' ? 'text-red-400' : 'text-stone-400'}`}>{eq.c1}</span>
+                <div className="flex-1 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner flex justify-between items-center">
+                  <span className="text-xs text-slate-500">Circuito 1</span>
+                  <span className={`text-sm font-bold ${eq.c1 === 'OK' ? 'text-emerald-400' : eq.c1 === 'NOK' ? 'text-red-400' : 'text-slate-400'}`}>{eq.c1}</span>
                 </div>
-                <div className="flex-1 bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-800 shadow-inner flex justify-between items-center">
-                  <span className="text-xs text-stone-500">Circuito 2</span>
-                  <span className={`text-sm font-bold ${eq.c2 === 'OK' ? 'text-emerald-400' : eq.c2 === 'NOK' ? 'text-red-400' : 'text-stone-400'}`}>{eq.c2}</span>
+                <div className="flex-1 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner flex justify-between items-center">
+                  <span className="text-xs text-slate-500">Circuito 2</span>
+                  <span className={`text-sm font-bold ${eq.c2 === 'OK' ? 'text-emerald-400' : eq.c2 === 'NOK' ? 'text-red-400' : 'text-slate-400'}`}>{eq.c2}</span>
                 </div>
               </div>
             </div>
@@ -134,17 +135,17 @@ const ModalDetalle = ({ config, onClose }) => {
   } else if (metrica === 'cargati') {
     titulo = `Detalle Carga TI - ${sala.nombre}`;
     contenido = (
-      <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
-        <div className="flex justify-between border-b border-stone-800/80 pb-3">
-          <span className="text-stone-400 font-medium">Capacidad Total TI (Máx TI)</span>
-          <span className="text-stone-200 font-bold text-lg">{fmt(sala.maxTi, ' kW')}</span>
+      <div className="bg-slate-900/60 rounded-xl p-5 border border-slate-800 space-y-4">
+        <div className="flex justify-between border-b border-slate-800/80 pb-3">
+          <span className="text-slate-400 font-medium">Capacidad Total TI (Máx TI)</span>
+          <span className="text-slate-200 font-bold text-lg">{fmt(sala.maxTi, ' kW')}</span>
         </div>
-        <div className="flex justify-between border-b border-stone-800/80 pb-3">
-          <span className="text-stone-400 font-medium">Carga TI Actual</span>
+        <div className="flex justify-between border-b border-slate-800/80 pb-3">
+          <span className="text-slate-400 font-medium">Carga TI Actual</span>
           <span className="text-orange-400 font-bold text-lg">{fmt(sala.cargaTiKw, ' kW')}</span>
         </div>
         <div className="flex justify-between items-center pt-1">
-          <span className="text-stone-400 font-medium">Porcentaje de Carga</span>
+          <span className="text-slate-400 font-medium">Porcentaje de Carga</span>
           <span className="text-orange-300 font-extrabold text-xl bg-orange-950/30 px-3 py-1 rounded-lg border border-orange-900/50">
             {fmtPorcentaje(sala.cargaTi)}
           </span>
@@ -154,17 +155,17 @@ const ModalDetalle = ({ config, onClose }) => {
   } else if (metrica === 'energia') {
     titulo = `Detalle UPS - ${sala.equipo}`;
     contenido = (
-      <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
-        <div className="flex justify-between border-b border-stone-800/80 pb-3">
-          <span className="text-stone-400 font-medium">KVA Inicio</span>
+      <div className="bg-slate-900/60 rounded-xl p-5 border border-slate-800 space-y-4">
+        <div className="flex justify-between border-b border-slate-800/80 pb-3">
+          <span className="text-slate-400 font-medium">KVA Inicio</span>
           <span className="text-amber-400 font-bold text-lg">{fmt(sala.kvaInicio)}</span>
         </div>
-        <div className="flex justify-between border-b border-stone-800/80 pb-3">
-          <span className="text-stone-400 font-medium">KW Término</span>
+        <div className="flex justify-between border-b border-slate-800/80 pb-3">
+          <span className="text-slate-400 font-medium">KW Término</span>
           <span className="text-indigo-400 font-bold text-lg">{fmt(sala.kvaTermino)}</span>
         </div>
         <div className="flex justify-between items-center pt-1">
-          <span className="text-stone-400 font-medium">Porcentaje Carga</span>
+          <span className="text-slate-400 font-medium">Porcentaje Carga</span>
           <span className="text-emerald-400 font-extrabold text-xl bg-emerald-950/30 px-3 py-1 rounded-lg border border-emerald-900/50">
             {fmtPorcentaje(sala.porcentajeCarga)}
           </span>
@@ -175,10 +176,10 @@ const ModalDetalle = ({ config, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
-      <div className="bg-[#18181b] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-5 border-b border-stone-800">
-          <h3 className="text-xl font-bold text-stone-100">{titulo}</h3>
-          <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-5 border-b border-slate-800">
+          <h3 className="text-xl font-bold text-slate-100">{titulo}</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
         </div>
         <div className="overflow-y-auto p-5">
           {contenido}
@@ -201,52 +202,52 @@ const ModalNovedades = ({ novedades, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
-      <div className="bg-[#141416] border border-stone-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col text-stone-200" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-5 border-b border-stone-800 shrink-0">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col text-slate-200" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-5 border-b border-slate-800 shrink-0">
           <div>
             <h3 className="text-xl font-bold text-cyan-400 tracking-wide">Novedades y Observaciones de Operación</h3>
-            <p className="text-sm text-stone-400">Registro reciente clasificado por área de supervisión</p>
+            <p className="text-sm text-slate-400">Registro reciente clasificado por área de supervisión</p>
           </div>
-          <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl font-bold px-3 py-1 leading-none rounded-md bg-stone-900 border border-stone-800">×</button>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-2xl font-bold px-3 py-1 leading-none rounded-md bg-slate-900 border border-slate-800">×</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-          <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
+          <div className="flex flex-col min-w-0 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-3 border-b border-blue-900/40 pb-2">
               Clima ({novClima.length})
             </h4>
             <div className="space-y-3 overflow-y-auto flex-1 pr-1">
               {novClima.length === 0 ? (
-                <p className="text-stone-500 text-xs text-center py-6">No hay novedades registradas en Clima.</p>
+                <p className="text-slate-500 text-xs text-center py-6">No hay novedades registradas en Clima.</p>
               ) : (
                 novClima.map((n, i) => (
-                  <div key={i} className="bg-stone-900 border border-stone-800 p-3 rounded-lg shadow-inner space-y-1">
-                    <div className="flex justify-between text-xs text-stone-400 font-medium">
-                      <span>Sala: <strong className="text-stone-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
+                  <div key={i} className="bg-slate-900 border border-slate-800 p-3 rounded-lg shadow-inner space-y-1">
+                    <div className="flex justify-between text-xs text-slate-400 font-medium">
+                      <span>Sala: <strong className="text-slate-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
                       <span className="text-cyan-500">{n.fecha}</span>
                     </div>
-                    <p className="text-sm text-stone-200 pt-1 font-normal">{n.observacion}</p>
+                    <p className="text-sm text-slate-200 pt-1 font-normal">{n.observacion}</p>
                   </div>
                 ))
               )}
             </div>
           </div>
 
-          <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
+          <div className="flex flex-col min-w-0 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-amber-400 mb-3 border-b border-amber-900/40 pb-2">
               Energía ({novEnergia.length})
             </h4>
             <div className="space-y-3 overflow-y-auto flex-1 pr-1">
               {novEnergia.length === 0 ? (
-                <p className="text-stone-500 text-xs text-center py-6">No hay novedades registradas en Energía.</p>
+                <p className="text-slate-500 text-xs text-center py-6">No hay novedades registradas en Energía.</p>
               ) : (
                 novEnergia.map((n, i) => (
-                  <div key={i} className="bg-stone-900 border border-stone-800 p-3 rounded-lg shadow-inner space-y-1">
-                    <div className="flex justify-between text-xs text-stone-400 font-medium">
-                      <span>Sala: <strong className="text-stone-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
+                  <div key={i} className="bg-slate-900 border border-slate-800 p-3 rounded-lg shadow-inner space-y-1">
+                    <div className="flex justify-between text-xs text-slate-400 font-medium">
+                      <span>Sala: <strong className="text-slate-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
                       <span className="text-cyan-500">{n.fecha}</span>
                     </div>
-                    <p className="text-sm text-stone-200 pt-1 font-normal">{n.observacion}</p>
+                    <p className="text-sm text-slate-200 pt-1 font-normal">{n.observacion}</p>
                   </div>
                 ))
               )}
@@ -256,10 +257,10 @@ const ModalNovedades = ({ novedades, onClose }) => {
 
         {novOtras.length > 0 && (
           <div className="px-6 pb-6 shrink-0">
-            <p className="text-xs text-stone-500 uppercase mb-2">Otras áreas / General:</p>
+            <p className="text-xs text-slate-500 uppercase mb-2">Otras áreas / General:</p>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {novOtras.map((n, i) => (
-                <div key={i} className="bg-stone-900 border border-stone-800 p-2 rounded text-xs flex justify-between">
+                <div key={i} className="bg-slate-900 border border-slate-800 p-2 rounded text-xs flex justify-between">
                   <span><strong>{n.area || 'General'}</strong> - {n.sala}: {n.observacion}</span>
                   <span className="text-cyan-500">{n.fecha}</span>
                 </div>
@@ -286,16 +287,16 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
   return (
-    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full overflow-hidden">
+    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-slate-700 border-t-[2px] border-t-slate-400/60 p-3 flex flex-col justify-between h-full w-full overflow-hidden">
 
-      <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
-        <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.nombre || 'Sala'}</h2>
+      <div className="flex justify-between items-center mb-2 border-b border-slate-800/60 pb-2 shrink-0">
+        <h2 className="text-sm font-bold text-slate-200 tracking-wide truncate">{datos.nombre || 'Sala'}</h2>
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <div className="text-[9px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
-            Max KWF: <span className="text-stone-200 font-bold">{fmt(datos.maxKwf)}</span>
+          <div className="text-[9px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-inner">
+            Max KWF: <span className="text-slate-200 font-bold">{fmt(datos.maxKwf)}</span>
           </div>
-          <div className="text-[9px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
-            Max TI: <span className="text-stone-200 font-bold">{fmt(datos.maxTi)}</span>
+          <div className="text-[9px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-inner">
+            Max TI: <span className="text-slate-200 font-bold">{fmt(datos.maxTi)}</span>
           </div>
         </div>
       </div>
@@ -304,10 +305,10 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
-          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-blue-500/60 hover:bg-blue-950/30 focus:outline-none w-full"
+          className="bg-blue-950/30 shadow-inner p-2 rounded-xl border border-blue-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-blue-500/60 hover:bg-blue-900/40 focus:outline-none w-full"
           style={tempCritica ? { backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18), borderColor: hexA(COLOR_PREOCUPANTE, 0.55) } : undefined}
         >
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T°</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">T°</p>
           <p className={`text-xl font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
             {fmt(temp, '°C')}
           </p>
@@ -315,9 +316,9 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'humedad')}
-          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-950/30 focus:outline-none w-full"
+          className="bg-cyan-950/30 shadow-inner p-2 rounded-xl border border-cyan-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-900/40 focus:outline-none w-full"
         >
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">H%</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">H%</p>
           <p className="text-xl font-bold text-cyan-400">{fmt(datos.humedad, '%')}</p>
         </button>
 
@@ -325,11 +326,11 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           onClick={() => onClickMetrica(datos, 'kwf')}
           className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-purple-500/60 hover:bg-purple-950/30 focus:outline-none w-full"
           style={{
-            backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(30,30,35,0.8)',
-            borderColor: colorKwf ? hexA(colorKwf, 0.55) : '#292524'
+            backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)',
+            borderColor: colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'
           }}
         >
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">KWF</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">KWF</p>
           <p className="text-xl font-bold" style={{ color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</p>
           {hayDatoKwf && (
             <p className="text-[9px] font-bold mt-0.5" style={{ color: hexA(colorKwf, 0.85) }}>
@@ -340,9 +341,9 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'cargati')}
-          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-orange-500/60 hover:bg-orange-950/30 focus:outline-none w-full"
+          className="bg-orange-950/30 shadow-inner p-2 rounded-xl border border-orange-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-orange-500/60 hover:bg-orange-900/40 focus:outline-none w-full"
         >
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Carga TI</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Carga TI</p>
           <p className="text-xl font-bold text-orange-400">{fmt(datos.cargaTiKw)}</p>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
             <p className="text-[9px] font-bold text-orange-300/70 mt-0.5">
@@ -362,23 +363,23 @@ const TarjetaChiller = ({ datos }) => {
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full text-left overflow-hidden">
-      <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
-        <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'Chiller'}</h2>
-        <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap flex gap-1 shadow-inner">
+    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-slate-700 border-t-[2px] border-t-slate-400/60 p-3 flex flex-col justify-between h-full w-full text-left overflow-hidden">
+      <div className="flex justify-between items-center mb-2 border-b border-slate-800/60 pb-2 shrink-0">
+        <h2 className="text-sm font-bold text-slate-200 tracking-wide truncate">{datos.equipo || 'Chiller'}</h2>
+        <div className="text-[10px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap flex gap-1 shadow-inner">
           <span>Comp:</span>
           {statusList.length > 0 ? statusList.map((st, idx) => (
-            <span key={idx} className="font-bold text-stone-300">[{st || '—'}]</span>
-          )) : <span className="text-stone-600">—</span>}
+            <span key={idx} className="font-bold text-slate-300">[{st || '—'}]</span>
+          )) : <span className="text-slate-600">—</span>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T° Surtidor</p>
+        <div className="bg-teal-950/30 shadow-inner p-2 rounded-xl border border-teal-900/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">T° Surtidor</p>
           <p className="text-xl font-bold text-teal-400">{fmt(datos.tempSurtidor, '°C')}</p>
         </div>
-        <div className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">T° Retorno</p>
+        <div className="bg-sky-950/30 shadow-inner p-2 rounded-xl border border-sky-900/50 flex flex-col justify-center text-center">
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">T° Retorno</p>
           <p className="text-xl font-bold text-sky-400">{fmt(datos.tempRetorno, '°C')}</p>
         </div>
       </div>
@@ -396,11 +397,11 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full overflow-hidden">
+    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-slate-700 border-t-[2px] border-t-amber-500/60 p-3 flex flex-col h-full w-full overflow-hidden">
 
-      <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
-        <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
-        <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
+      <div className="flex justify-between items-center mb-2 border-b border-slate-800/60 pb-2 shrink-0">
+        <h2 className="text-sm font-bold text-slate-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
+        <div className="text-[10px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-inner">
           KVA: <span className="text-amber-300 font-bold">{fmt(datos.kvaInicio)}</span>
         </div>
       </div>
@@ -409,9 +410,9 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-indigo-500/60 hover:bg-indigo-950/30 focus:outline-none w-full"
+          className="bg-indigo-950/30 shadow-inner p-2 rounded-xl border border-indigo-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-indigo-500/60 hover:bg-indigo-900/40 focus:outline-none w-full"
         >
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">KW</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">KW</p>
           <p className="text-xl font-bold text-indigo-400">{fmt(datos.kvaTermino)}</p>
         </button>
 
@@ -419,11 +420,11 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
           onClick={() => onClickMetrica(datos, 'energia')}
           className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-emerald-500/60 hover:bg-emerald-950/30 focus:outline-none w-full"
           style={{
-            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(30,30,35,0.8)',
-            borderColor: colorCarga ? hexA(colorCarga, 0.55) : '#292524'
+            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
+            borderColor: colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'
           }}
         >
-          <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Porcentaje Carga</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Porcentaje Carga</p>
           <p className="text-xl font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</p>
         </button>
 
@@ -528,13 +529,13 @@ const IcetelProgramaVista = () => {
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="min-h-[100dvh] lg:h-[100dvh] w-full overflow-y-auto bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
+    <div className="min-h-[100dvh] lg:h-[100dvh] w-full overflow-y-auto bg-slate-950 p-4 flex flex-col font-sans text-slate-200">
 
       <header className="mb-3 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-3 shrink-0">
         <div>
-          <h1 className="text-xl lg:text-2xl font-extrabold text-stone-100 tracking-tight">Icetel Visualización</h1>
-          <p className="text-stone-400 text-sm font-medium mt-0.5">
-            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (rotación cada 15s · usa ← → para cambiar)`}
+          <h1 className="text-xl lg:text-2xl font-extrabold text-slate-100 tracking-tight">Icetel Visualización</h1>
+          <p className="text-slate-400 text-sm font-medium mt-0.5">
+            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (rotación cada 10s · usa ← → para cambiar)`}
           </p>
         </div>
 
@@ -547,12 +548,12 @@ const IcetelProgramaVista = () => {
             Novedades ({novedades.length})
           </button>
 
-          <div className="flex items-center space-x-2 bg-[#141416] px-3 py-2 rounded-xl border border-stone-800 shadow-inner">
+          <div className="flex items-center space-x-2 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 shadow-inner">
             <span className="relative flex h-3 w-3">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${error ? 'bg-red-500' : 'bg-emerald-500'} opacity-75`}></span>
               <span className={`relative inline-flex rounded-full h-3 w-3 ${error ? 'bg-red-600' : 'bg-emerald-500'}`}></span>
             </span>
-            <span className="text-sm font-bold text-stone-300">{error ? 'Error de conexión' : 'EN LÍNEA'}</span>
+            <span className="text-sm font-bold text-slate-300">{error ? 'Error de conexión' : 'EN LÍNEA'}</span>
           </div>
         </div>
       </header>
@@ -567,7 +568,7 @@ const IcetelProgramaVista = () => {
 
         {/* CLIMA */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-lg font-bold mb-2 border-b-2 border-stone-700/80 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-stone-400 to-stone-200 drop-shadow-sm">
+          <h2 className="text-lg font-bold mb-2 border-b-2 border-slate-700/80 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-slate-400 to-slate-200 drop-shadow-sm">
             Clima
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
@@ -589,12 +590,12 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        <div className="hidden lg:block w-[2px] bg-stone-800/80 rounded-full my-4"></div>
-        <div className="block lg:hidden h-[2px] bg-stone-800/80 rounded-full"></div>
+        <div className="hidden lg:block w-[2px] bg-slate-800/80 rounded-full my-4"></div>
+        <div className="block lg:hidden h-[2px] bg-slate-800/80 rounded-full"></div>
 
         {/* ENERGÍA */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-lg font-bold mb-2 border-b-2 border-amber-800/50 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-300 drop-shadow-sm">
+          <h2 className="text-lg font-bold mb-2 border-b-2 border-amber-800/50 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-400 drop-shadow-sm">
             Energía
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
