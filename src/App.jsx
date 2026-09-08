@@ -459,7 +459,7 @@ const IcetelProgramaVista = () => {
 
       if (window.matchMedia("(orientation: landscape)").matches) {
         // Forzamos 1200px de ancho y aplicamos un zoom de alejamiento al 70% (0.7)
-        viewport.setAttribute("content", "width=1200, initial-scale=0.6, maximum-scale=1.0, user-scalable=no");
+        viewport.setAttribute("content", "width=1200, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
       } else {
         // Celular vertical normal
         viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
