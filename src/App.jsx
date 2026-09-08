@@ -93,33 +93,46 @@ const useResponsiveLayout = () => {
   return layout;
 };
 
-// --- HOOK: medir altura real de un contenedor en px ---
+// --- HOOK: calcular el alto DISPONIBLE para un contenedor, en px ---
 // Se usa para el alto de las tarjetas de Clima/Energía en vez de porcentajes
-// CSS (`calc(100%/filas - gap)`). Motivo: cuando la altura del contenedor
-// viene de `flex: 1` (crecimiento flexible) y no de un valor fijo, muchos
-// WebViews antiguos (como el de esta Android TV) no resuelven bien el
-// porcentaje de altura de los hijos — quedan con altura mínima/auto y sobra
-// espacio vacío abajo. Midiendo el contenedor con JS y fijando la altura de
-// cada tarjeta en píxeles reales se evita ese problema por completo.
-const useAlturaMedida = () => {
+// CSS o de `flex: 1`. Motivo: en este WebView viejo `flex-grow` no calcula
+// bien el alto disponible en columnas anidadas — el contenedor de tarjetas
+// quedaba con altura basada en su propio contenido en vez de crecer para
+// llenar el espacio libre.
+//
+// Un primer intento midió `clientHeight` del propio contenedor y usó ese
+// valor para fijarle una altura a sus tarjetas. Eso creó un bucle de
+// retroalimentación: al fijar una altura, el contenedor cambiaba de tamaño,
+// lo que disparaba una nueva medición con un valor distinto (más chico), que
+// volvía a fijar una altura menor, y así en bucle — por eso las tarjetas
+// empezaban ocupando media pantalla y se iban encogiendo.
+//
+// La solución es medir algo que NO dependa de la altura que le vamos a
+// asignar al contenedor: su posición `top` real en la pantalla (que solo
+// depende de lo que hay ARRIBA, no de su propio alto) y restarla a la altura
+// de la ventana. Ese resultado nunca se retroalimenta con nuestra propia
+// asignación de altura.
+const useAlturaDisponible = (margenInferior) => {
   const ref = useRef(null);
   const [altura, setAltura] = useState(0);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
     let activo = true;
     const medir = () => {
       if (!activo || !ref.current) return;
-      const h = ref.current.clientHeight;
-      setAltura((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+      const top = ref.current.getBoundingClientRect().top;
+      const disponible = Math.max(0, window.innerHeight - top - margenInferior);
+      setAltura((prev) => (Math.abs(prev - disponible) > 1 ? disponible : prev));
     };
     medir();
     window.addEventListener('resize', medir);
     window.addEventListener('orientationchange', medir);
     let observer = null;
+    // Observamos el documento completo (viewport), NUNCA el propio
+    // contenedor: observar el propio contenedor es lo que causaba el bucle
+    // de retroalimentación descrito arriba.
     if (typeof window !== 'undefined' && typeof window.ResizeObserver !== 'undefined') {
       observer = new window.ResizeObserver(medir);
-      observer.observe(el);
+      observer.observe(document.documentElement);
     }
     // Sondeo periódico de respaldo: algunos WebViews viejos no tienen
     // ResizeObserver o no disparan resize/orientationchange de forma
@@ -132,7 +145,7 @@ const useAlturaMedida = () => {
       if (observer) observer.disconnect();
       clearInterval(intervalo);
     };
-  }, []);
+  }, [margenInferior]);
   return [ref, altura];
 };
 
@@ -488,8 +501,12 @@ const IcetelProgramaVista = () => {
 
   const intervaloRef = useRef(null);
   const { columnas, esPantallaGrande } = useResponsiveLayout();
-  const [climaRef, alturaClima] = useAlturaMedida();
-  const [energiaRef, alturaEnergia] = useAlturaMedida();
+  // El margen inferior debe coincidir con el padding inferior real de la
+  // página (ver el div raíz más abajo: 14px en TV/landscape, 10px en chico)
+  // más un pequeño colchón de seguridad para evitar que aparezca scroll.
+  const margenInferior = esPantallaGrande ? 18 : 14;
+  const [climaRef, alturaDisponibleClima] = useAlturaDisponible(margenInferior);
+  const [energiaRef, alturaDisponibleEnergia] = useAlturaDisponible(margenInferior);
 
   // --- VIEWPORT: siempre tamaño real, sin zoom artificial ---
   useEffect(() => {
@@ -593,21 +610,19 @@ const IcetelProgramaVista = () => {
   // no entra todo.
   const filas = esPantallaGrande ? Math.max(1, Math.ceil(ITEMS_POR_PAGINA / columnas)) : null;
 
-  // El alto de cada tarjeta se calcula en PÍXELES REALES a partir de la
-  // altura medida del contenedor (useAlturaMedida), no con `calc(%)`. Esto
-  // evita el flexbug clásico donde un WebView viejo no resuelve bien un
-  // porcentaje de altura cuyo contenedor a su vez mide su altura por
-  // `flex: 1` — que era la causa de que las tarjetas (sobre todo los
-  // chillers) quedaran chicas/aplastadas con un montón de espacio vacío
-  // debajo, como se ve en la captura de la TV.
-  const calcularAltoTarjetaPx = (alturaContenedor) => {
+  // El alto de cada tarjeta se calcula en PÍXELES REALES a partir del alto
+  // DISPONIBLE (useAlturaDisponible: viewport - top - margen), no de la
+  // altura propia del contenedor ni de `calc(%)`. Ver el comentario del hook
+  // más arriba para el porqué (evita el bucle de retroalimentación que hacía
+  // que las tarjetas se fueran encogiendo).
+  const calcularAltoTarjetaPx = (alturaDisponible) => {
     if (!esPantallaGrande) return 150; // pantallas chicas: alto fijo, con scroll
-    if (!alturaContenedor || !filas) return 130; // valor de arranque mientras se mide
-    const alto = (alturaContenedor - gapPx * (filas - 1)) / filas;
+    if (!alturaDisponible || !filas) return 130; // valor de arranque mientras se mide
+    const alto = (alturaDisponible - gapPx * (filas - 1)) / filas;
     return Math.max(70, Math.floor(alto));
   };
-  const altoTarjetaClima = calcularAltoTarjetaPx(alturaClima);
-  const altoTarjetaEnergia = calcularAltoTarjetaPx(alturaEnergia);
+  const altoTarjetaClima = calcularAltoTarjetaPx(alturaDisponibleClima);
+  const altoTarjetaEnergia = calcularAltoTarjetaPx(alturaDisponibleEnergia);
 
   return (
     <div style={{
@@ -669,7 +684,7 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
-          <div ref={climaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
+          <div ref={climaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, height: esPantallaGrande ? `${alturaDisponibleClima || altoTarjetaClima * filas + gapPx * (filas - 1)}px` : undefined, alignContent: 'flex-start' }}>
             {climaEnPantalla.map((item, i) => {
               const contenido = !item
                 ? null
@@ -702,7 +717,7 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Energía
           </h2>
-          <div ref={energiaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
+          <div ref={energiaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, height: esPantallaGrande ? `${alturaDisponibleEnergia || altoTarjetaEnergia * filas + gapPx * (filas - 1)}px` : undefined, alignContent: 'flex-start' }}>
             {energiaEnPantalla.map((ups, i) => {
               const contenido = !ups ? null : (
                 <TarjetaEnergia
