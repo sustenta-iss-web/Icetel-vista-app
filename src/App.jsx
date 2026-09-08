@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 // --- CONFIGURACIÓN ---
@@ -175,7 +174,7 @@ const ModalDetalle = ({ config, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center p-5 border-b border-slate-800">
           <h3 className="text-xl font-bold text-slate-100">{titulo}</h3>
@@ -201,7 +200,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
   });
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col text-slate-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center p-5 border-b border-slate-800 shrink-0">
           <div>
@@ -211,8 +210,8 @@ const ModalNovedades = ({ novedades, onClose }) => {
           <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-2xl font-bold px-3 py-1 leading-none rounded-md bg-slate-900 border border-slate-800">×</button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-          <div className="flex flex-col min-w-0 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="flex flex-col bg-slate-900/40 p-4 rounded-xl border border-slate-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-3 border-b border-blue-900/40 pb-2">
               Clima ({novClima.length})
             </h4>
@@ -233,7 +232,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
             </div>
           </div>
 
-          <div className="flex flex-col min-w-0 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+          <div className="flex flex-col bg-slate-900/40 p-4 rounded-xl border border-slate-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-amber-400 mb-3 border-b border-amber-900/40 pb-2">
               Energía ({novEnergia.length})
             </h4>
@@ -287,71 +286,58 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-slate-700 border-t-[2px] border-t-slate-400/60 p-3 flex flex-col justify-between h-full w-full overflow-hidden">
-
-      <div className="flex justify-between items-center mb-2 border-b border-slate-800/60 pb-2 shrink-0">
-        <h2 className="text-sm font-bold text-slate-200 tracking-wide truncate">{datos.nombre || 'Sala'}</h2>
-        <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <div className="text-[9px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-inner">
-            Max KWF: <span className="text-slate-200 font-bold">{fmt(datos.maxKwf)}</span>
-          </div>
-          <div className="text-[9px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-inner">
-            Max TI: <span className="text-slate-200 font-bold">{fmt(datos.maxTi)}</span>
-          </div>
+    <div className="bg-slate-900 rounded-2xl border border-slate-700 border-t-[2px] border-t-slate-400/60 p-2.5 flex flex-col justify-between w-full" style={{ height: '145px' }}>
+      <div className="flex justify-between items-center mb-1 border-b border-slate-800 pb-1 shrink-0">
+        <h2 className="text-xs font-bold text-slate-200 truncate">{datos.nombre || 'Sala'}</h2>
+        <div className="flex gap-1">
+          <span className="text-[8px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">KWF: {fmt(datos.maxKwf)}</span>
+          <span className="text-[8px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">TI: {fmt(datos.maxTi)}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-
+      <div className="grid grid-cols-2 gap-1.5 flex-1">
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
-          className="bg-blue-950/30 shadow-inner p-2 rounded-xl border border-blue-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-blue-500/60 hover:bg-blue-900/40 focus:outline-none w-full"
+          className="bg-blue-950/30 p-1.5 rounded-lg border border-blue-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-blue-900/40"
           style={tempCritica ? { backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18), borderColor: hexA(COLOR_PREOCUPANTE, 0.55) } : undefined}
         >
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">T°</p>
-          <p className={`text-xl font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
+          <span className="text-[9px] uppercase font-bold text-slate-500">T°</span>
+          <span className={`text-base font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
             {fmt(temp, '°C')}
-          </p>
+          </span>
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'humedad')}
-          className="bg-cyan-950/30 shadow-inner p-2 rounded-xl border border-cyan-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-900/40 focus:outline-none w-full"
+          className="bg-cyan-950/30 p-1.5 rounded-lg border border-cyan-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-cyan-900/40"
         >
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">H%</p>
-          <p className="text-xl font-bold text-cyan-400">{fmt(datos.humedad, '%')}</p>
+          <span className="text-[9px] uppercase font-bold text-slate-500">H%</span>
+          <span className="text-base font-bold text-cyan-400">{fmt(datos.humedad, '%')}</span>
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'kwf')}
-          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-purple-500/60 hover:bg-purple-950/30 focus:outline-none w-full"
+          className="p-1.5 rounded-lg border flex flex-col justify-center text-center cursor-pointer"
           style={{
             backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)',
             borderColor: colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'
           }}
         >
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">KWF</p>
-          <p className="text-xl font-bold" style={{ color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</p>
-          {hayDatoKwf && (
-            <p className="text-[9px] font-bold mt-0.5" style={{ color: hexA(colorKwf, 0.85) }}>
-              {fmtPorcentaje(pctKwf)} Operativo
-            </p>
-          )}
+          <span className="text-[9px] uppercase font-bold text-slate-500">KWF</span>
+          <span className="text-base font-bold" style={{ color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
+          {hayDatoKwf && <span className="text-[8px] font-bold" style={{ color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'cargati')}
-          className="bg-orange-950/30 shadow-inner p-2 rounded-xl border border-orange-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-orange-500/60 hover:bg-orange-900/40 focus:outline-none w-full"
+          className="bg-orange-950/30 p-1.5 rounded-lg border border-orange-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-orange-900/40"
         >
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Carga TI</p>
-          <p className="text-xl font-bold text-orange-400">{fmt(datos.cargaTiKw)}</p>
+          <span className="text-[9px] uppercase font-bold text-slate-500">Carga TI</span>
+          <span className="text-base font-bold text-orange-400">{fmt(datos.cargaTiKw)}</span>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
-            <p className="text-[9px] font-bold text-orange-300/70 mt-0.5">
-              {fmtPorcentaje(datos.cargaTi)} Carga
-            </p>
+            <span className="text-[8px] font-bold text-orange-300/70">{fmtPorcentaje(datos.cargaTi)}</span>
           )}
         </button>
-
       </div>
     </div>
   );
@@ -363,24 +349,24 @@ const TarjetaChiller = ({ datos }) => {
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-slate-700 border-t-[2px] border-t-slate-400/60 p-3 flex flex-col justify-between h-full w-full text-left overflow-hidden">
-      <div className="flex justify-between items-center mb-2 border-b border-slate-800/60 pb-2 shrink-0">
-        <h2 className="text-sm font-bold text-slate-200 tracking-wide truncate">{datos.equipo || 'Chiller'}</h2>
-        <div className="text-[10px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap flex gap-1 shadow-inner">
+    <div className="bg-slate-900 rounded-2xl border border-slate-700 border-t-[2px] border-t-slate-400/60 p-2.5 flex flex-col justify-between w-full" style={{ height: '145px' }}>
+      <div className="flex justify-between items-center mb-1 border-b border-slate-800 pb-1 shrink-0">
+        <h2 className="text-xs font-bold text-slate-200 truncate">{datos.equipo || 'Chiller'}</h2>
+        <div className="text-[9px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 flex gap-1">
           <span>Comp:</span>
           {statusList.length > 0 ? statusList.map((st, idx) => (
             <span key={idx} className="font-bold text-slate-300">[{st || '—'}]</span>
-          )) : <span className="text-slate-600">—</span>}
+          )) : <span>—</span>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        <div className="bg-teal-950/30 shadow-inner p-2 rounded-xl border border-teal-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">T° Surtidor</p>
-          <p className="text-xl font-bold text-teal-400">{fmt(datos.tempSurtidor, '°C')}</p>
+      <div className="grid grid-cols-2 gap-1.5 flex-1">
+        <div className="bg-teal-950/30 p-1.5 rounded-lg border border-teal-900/50 flex flex-col justify-center text-center">
+          <span className="text-[9px] uppercase font-bold text-slate-500">T° Surtidor</span>
+          <span className="text-base font-bold text-teal-400">{fmt(datos.tempSurtidor, '°C')}</span>
         </div>
-        <div className="bg-sky-950/30 shadow-inner p-2 rounded-xl border border-sky-900/50 flex flex-col justify-center text-center">
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">T° Retorno</p>
-          <p className="text-xl font-bold text-sky-400">{fmt(datos.tempRetorno, '°C')}</p>
+        <div className="bg-sky-950/30 p-1.5 rounded-lg border border-sky-900/50 flex flex-col justify-center text-center">
+          <span className="text-[9px] uppercase font-bold text-slate-500">T° Retorno</span>
+          <span className="text-base font-bold text-sky-400">{fmt(datos.tempRetorno, '°C')}</span>
         </div>
       </div>
     </div>
@@ -397,37 +383,34 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-slate-700 border-t-[2px] border-t-amber-500/60 p-3 flex flex-col h-full w-full overflow-hidden">
-
-      <div className="flex justify-between items-center mb-2 border-b border-slate-800/60 pb-2 shrink-0">
-        <h2 className="text-sm font-bold text-slate-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
-        <div className="text-[10px] font-medium text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-inner">
-          KVA: <span className="text-amber-300 font-bold">{fmt(datos.kvaInicio)}</span>
-        </div>
+    <div className="bg-slate-900 rounded-2xl border border-slate-700 border-t-[2px] border-t-amber-500/60 p-2.5 flex flex-col justify-between w-full" style={{ height: '145px' }}>
+      <div className="flex justify-between items-center mb-1 border-b border-slate-800 pb-1 shrink-0">
+        <h2 className="text-xs font-bold text-slate-200 truncate">{datos.equipo || 'UPS'}</h2>
+        <span className="text-[9px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+          KVA: <strong className="text-amber-300">{fmt(datos.kvaInicio)}</strong>
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
-
+      <div className="grid grid-cols-2 gap-1.5 flex-1">
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          className="bg-indigo-950/30 shadow-inner p-2 rounded-xl border border-indigo-900/50 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-indigo-500/60 hover:bg-indigo-900/40 focus:outline-none w-full"
+          className="bg-indigo-950/30 p-1.5 rounded-lg border border-indigo-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-indigo-900/40"
         >
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">KW</p>
-          <p className="text-xl font-bold text-indigo-400">{fmt(datos.kvaTermino)}</p>
+          <span className="text-[9px] uppercase font-bold text-slate-500">KW</span>
+          <span className="text-base font-bold text-indigo-400">{fmt(datos.kvaTermino)}</span>
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-emerald-500/60 hover:bg-emerald-950/30 focus:outline-none w-full"
+          className="p-1.5 rounded-lg border flex flex-col justify-center text-center cursor-pointer"
           style={{
             backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
             borderColor: colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'
           }}
         >
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Porcentaje Carga</p>
-          <p className="text-xl font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</p>
+          <span className="text-[9px] uppercase font-bold text-slate-500">% Carga</span>
+          <span className="text-base font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</span>
         </button>
-
       </div>
     </div>
   );
@@ -447,35 +430,6 @@ const IcetelProgramaVista = () => {
 
   const intervaloRef = useRef(null);
 
-    // --- CONTROL DINÁMICO DE VIEWPORT Y ZOOM (ROTACIÓN) ---
-  useEffect(() => {
-    const ajustarPantalla = () => {
-      let viewport = document.querySelector('meta[name="viewport"]');
-      if (!viewport) {
-        viewport = document.createElement('meta');
-        viewport.name = 'viewport';
-        document.head.appendChild(viewport);
-      }
-
-      if (window.matchMedia("(orientation: landscape)").matches) {
-        // Forzamos 1200px de ancho y aplicamos un zoom de alejamiento al 70% (0.7)
-        viewport.setAttribute("content", "width=1200, initial-scale=0.2, maximum-scale=1.0, user-scalable=no");
-      } else {
-        // Celular vertical normal
-        viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
-      }
-    };
-
-    // Ejecutar al cargar la app
-    ajustarPantalla();
-
-    // Quedarse escuchando cada vez que el usuario gire el teléfono
-    window.addEventListener("resize", ajustarPantalla);
-    
-    // Limpieza del evento
-    return () => window.removeEventListener("resize", ajustarPantalla);
-  }, []);
-
   const cargarDatos = useCallback(async () => {
     try {
       const res = await fetch(GAS_URL);
@@ -484,19 +438,16 @@ const IcetelProgramaVista = () => {
 
       const salas = json.salas || [];
       let chillers = json.chillers || [];
-
       chillers.sort((a, b) => (a.equipo || '').localeCompare(b.equipo || ''));
 
       const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2;
       let salasModificadas = [...salas];
-
       while (salasModificadas.length < indiceInicioPanel3) {
         salasModificadas.push(null);
       }
 
       const salasPanel1y2 = salasModificadas.slice(0, indiceInicioPanel3);
       const salasRestantes = salasModificadas.slice(indiceInicioPanel3);
-
       const climaCombinado = [...salasPanel1y2, ...chillers, ...salasRestantes];
 
       setDatosClima(climaCombinado);
@@ -535,80 +486,52 @@ const IcetelProgramaVista = () => {
     return () => { if (intervaloRef.current) clearInterval(intervaloRef.current); };
   }, [reiniciarRotacion]);
 
-  useEffect(() => {
-    const manejarTeclado = (ev) => {
-      if (totalPaginas <= 1) return;
-      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') {
-        ev.preventDefault();
-        setPaginaActual((p) => (p + 1) % totalPaginas);
-        reiniciarRotacion();
-      } else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') {
-        ev.preventDefault();
-        setPaginaActual((p) => (p - 1 + totalPaginas) % totalPaginas);
-        reiniciarRotacion();
-      }
-    };
-    window.addEventListener('keydown', manejarTeclado);
-    return () => window.removeEventListener('keydown', manejarTeclado);
-  }, [totalPaginas, reiniciarRotacion]);
-
   const indiceInicio = paginaActual * ITEMS_POR_PAGINA;
   const indiceFin = indiceInicio + ITEMS_POR_PAGINA;
   const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="min-h-[100dvh] lg:h-[100dvh] w-full overflow-y-auto bg-slate-950 p-4 flex flex-col font-sans text-slate-200">
-
-      <header className="mb-3 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-3 shrink-0">
+    <div className="w-full bg-slate-950 p-3 font-sans text-slate-200" style={{ height: '100vh', overflow: 'hidden' }}>
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-2 pb-1 border-b border-slate-800" style={{ height: '45px' }}>
         <div>
-          <h1 className="text-xl lg:text-2xl font-extrabold text-slate-100 tracking-tight">Icetel Visualización</h1>
-          <p className="text-slate-400 text-sm font-medium mt-0.5">
-            {cargando ? 'Cargando datos...' : `Mostrando panel ${paginaActual + 1} de ${totalPaginas} (rotación cada 10s · usa ← → para cambiar)`}
+          <h1 className="text-base font-extrabold text-slate-100">Icetel Visualización</h1>
+          <p className="text-[10px] text-slate-400">
+            {cargando ? 'Cargando...' : `Panel ${paginaActual + 1} de ${totalPaginas} (Rotación 10s)`}
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setMostrarNovedades(true)}
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-2 rounded-xl shadow-lg border border-cyan-300 transition-all text-sm flex items-center gap-2 cursor-pointer active:scale-95"
+            className="bg-cyan-500 text-slate-950 font-bold px-3 py-1 rounded text-xs cursor-pointer"
           >
-            <span className="w-2 h-2 rounded-full bg-slate-950 animate-pulse"></span>
             Novedades ({novedades.length})
           </button>
-
-                    <button 
-            onClick={() => window.location.reload()}
-            title="Recargar página"
-            className="flex items-center space-x-2 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 shadow-inner cursor-pointer hover:bg-slate-800 transition-all active:scale-95 focus:outline-none"
-          >
-            <span className="relative flex h-3 w-3">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${error ? 'bg-red-500' : 'bg-emerald-500'} opacity-75`}></span>
-              <span className={`relative inline-flex rounded-full h-3 w-3 ${error ? 'bg-red-600' : 'bg-emerald-500'}`}></span>
-            </span>
-            <span className="text-sm font-bold text-slate-300">{error ? 'Error de conexión' : 'EN LÍNEA'}</span>
-          </button>
+          <div className="bg-slate-900 px-2 py-1 rounded border border-slate-800 text-[10px] font-bold text-slate-300">
+            {error ? 'Error' : 'EN LÍNEA'}
+          </div>
         </div>
-      </header>
+      </div>
 
       {error && (
-        <div className="mb-3 bg-red-950/40 border border-red-900/50 text-red-400 text-sm rounded-xl px-4 py-2 shrink-0 shadow-lg">
+        <div className="mb-2 bg-red-950/40 border border-red-900 text-red-400 text-xs rounded p-1.5">
           Error: {error}
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row flex-1 gap-4 lg:gap-6 min-h-0">
-
+      {/* CONTENEDOR DE SECCIONES (Clima a la izquierda, Energía a la derecha usando porcentajes fijos compatibles) */}
+      <div className="flex flex-row gap-3" style={{ height: 'calc(100vh - 65px)' }}>
+        
         {/* CLIMA */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-lg font-bold mb-2 border-b-2 border-slate-700/80 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-slate-400 to-slate-200 drop-shadow-sm">
+        <div className="flex-1 flex flex-col">
+          <h2 className="text-xs font-bold mb-1 uppercase tracking-wider text-slate-300 border-b border-slate-700 pb-0.5">
             Clima
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
+          <div className="grid grid-cols-3 gap-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
             {climaEnPantalla.map((item, i) => {
-              if (!item) {
-                return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
-              }
+              if (!item) return <div key={`empty-${i}`}></div>;
               if (item.tipo === 'chiller') {
                 return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
               }
@@ -623,19 +546,16 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        <div className="hidden lg:block w-[2px] bg-slate-800/80 rounded-full my-4"></div>
-        <div className="block lg:hidden h-[2px] bg-slate-800/80 rounded-full"></div>
+        <div className="w-[1px] bg-slate-800 my-1"></div>
 
         {/* ENERGÍA */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <h2 className="text-lg font-bold mb-2 border-b-2 border-amber-800/50 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-400 drop-shadow-sm">
+        <div className="flex-1 flex flex-col">
+          <h2 className="text-xs font-bold mb-1 uppercase tracking-wider text-amber-400 border-b border-amber-800/50 pb-0.5">
             Energía
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
+          <div className="grid grid-cols-3 gap-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
             {energiaEnPantalla.map((ups, i) => {
-              if (!ups) {
-                return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
-              }
+              if (!ups) return <div key={`empty-ups-${i}`}></div>;
               return (
                 <TarjetaEnergia
                   key={ups.id || `ups-${i}`}
@@ -651,7 +571,6 @@ const IcetelProgramaVista = () => {
 
       <ModalDetalle config={modalConfig} onClose={() => setModalConfig({ sala: null, metrica: null })} />
       {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} />}
-
     </div>
   );
 };
