@@ -436,7 +436,7 @@ const IcetelProgramaVista = () => {
       }
       const esPantallaAnchaHorizontal = window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 900;
       if (esPantallaAnchaHorizontal) {
-        viewport.setAttribute("content", "width=1200, initial-scale=0.7, maximum-scale=1.0, user-scalable=no");
+        viewport.setAttribute("content", "width=1200, initial-scale=0.2, maximum-scale=1.0, user-scalable=no");
       } else {
         viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
       }
