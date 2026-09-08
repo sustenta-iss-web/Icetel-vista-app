@@ -10,9 +10,9 @@ const INTERVALO_PAGINA_MS = 15000;
 const COLOR_PREOCUPANTE = '#cb2330';
 const COLOR_KWF_OK = '#e3f565';
 const COLOR_ENERGIA_OK = '#32817c';
-const UMBRAL_KWF = 50;      
-const UMBRAL_CARGA_UPS = 80; 
-const UMBRAL_TEMP = 28;      
+const UMBRAL_KWF = 50;
+const UMBRAL_CARGA_UPS = 80;
+const UMBRAL_TEMP = 28;
 
 const hexA = (hex, alpha) => {
   const h = hex.replace('#', '');
@@ -57,7 +57,7 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- MODAL DINÁMICO DE DETALLE (Actualizado para KWF y Energía) ---
+// --- MODAL DINÁMICO DE DETALLE (KWF y Energía) ---
 const ModalDetalle = ({ config, onClose }) => {
   const { sala, metrica } = config;
   if (!sala || !metrica) return null;
@@ -102,7 +102,6 @@ const ModalDetalle = ({ config, onClose }) => {
       </div>
     );
   } else if (metrica === 'kwf') {
-    // NUEVO FORMATO DE CIRCUITOS
     titulo = `Estado de Circuitos KWF - ${sala.nombre}`;
     contenido = (
       <div className="space-y-3">
@@ -153,7 +152,6 @@ const ModalDetalle = ({ config, onClose }) => {
       </div>
     );
   } else if (metrica === 'energia') {
-    // NUEVO MODAL DETALLE ENERGÍA
     titulo = `Detalle UPS - ${sala.equipo}`;
     contenido = (
       <div className="bg-stone-900/60 rounded-xl p-5 border border-stone-800 space-y-4">
@@ -195,7 +193,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
   if (!novedades) return null;
 
   const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
-  const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia' ) || (n.area || '').toLowerCase().includes('energía'));
+  const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia') || (n.area || '').toLowerCase().includes('energía'));
   const novOtras = novedades.filter(n => {
     const a = (n.area || '').toLowerCase();
     return !a.includes('clima') && !a.includes('energia') && !a.includes('energía');
@@ -213,7 +211,6 @@ const ModalNovedades = ({ novedades, onClose }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-          {/* COLUMNA CLIMA */}
           <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-3 border-b border-blue-900/40 pb-2">
               Clima ({novClima.length})
@@ -235,7 +232,6 @@ const ModalNovedades = ({ novedades, onClose }) => {
             </div>
           </div>
 
-          {/* COLUMNA ENERGÍA */}
           <div className="flex flex-col min-w-0 bg-stone-900/40 p-4 rounded-xl border border-stone-800">
             <h4 className="text-sm font-bold uppercase tracking-wider text-amber-400 mb-3 border-b border-amber-900/40 pb-2">
               Energía ({novEnergia.length})
@@ -276,7 +272,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
   );
 };
 
-// --- TARJETA CLIMA (Ahora es un div contenedor, los botones son los cuadraditos) ---
+// --- TARJETA CLIMA ---
 const TarjetaClima = ({ datos, onClickMetrica }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
@@ -291,8 +287,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
   return (
     <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-stone-500/40 p-3 flex flex-col justify-between h-full w-full overflow-hidden">
-      
-      {/* Cabecera NO clickeable */}
+
       <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
         <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.nombre || 'Sala'}</h2>
         <div className="flex flex-col items-end gap-0.5 shrink-0">
@@ -306,8 +301,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-        
-        {/* BOTÓN 1: TEMPERATURA */}
+
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
           className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-blue-500/60 hover:bg-blue-950/30 focus:outline-none w-full"
@@ -319,7 +313,6 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           </p>
         </button>
 
-        {/* BOTÓN 2: HUMEDAD */}
         <button
           onClick={() => onClickMetrica(datos, 'humedad')}
           className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-950/30 focus:outline-none w-full"
@@ -328,7 +321,6 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           <p className="text-xl font-bold text-cyan-400">{fmt(datos.humedad, '%')}</p>
         </button>
 
-        {/* BOTÓN 3: KWF */}
         <button
           onClick={() => onClickMetrica(datos, 'kwf')}
           className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-purple-500/60 hover:bg-purple-950/30 focus:outline-none w-full"
@@ -346,7 +338,6 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           )}
         </button>
 
-        {/* BOTÓN 4: CARGA TI */}
         <button
           onClick={() => onClickMetrica(datos, 'cargati')}
           className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-orange-500/60 hover:bg-orange-950/30 focus:outline-none w-full"
@@ -395,7 +386,7 @@ const TarjetaChiller = ({ datos }) => {
   );
 };
 
-// --- TARJETA ENERGÍA (Ahora sus recuadros son botones) ---
+// --- TARJETA ENERGÍA ---
 const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
 
@@ -406,8 +397,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
 
   return (
     <div className="bg-[#141416] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-stone-800/80 border-t-[2px] border-t-amber-700/50 p-3 flex flex-col h-full w-full overflow-hidden">
-      
-      {/* Cabecera NO clickeable */}
+
       <div className="flex justify-between items-center mb-2 border-b border-stone-800/60 pb-2 shrink-0">
         <h2 className="text-sm font-bold text-stone-200 tracking-wide truncate">{datos.equipo || 'UPS'}</h2>
         <div className="text-[10px] font-medium text-stone-400 bg-stone-950/80 px-2 py-0.5 rounded-md border border-stone-800 whitespace-nowrap shadow-inner">
@@ -416,8 +406,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-2 flex-1 min-h-0">
-        
-        {/* BOTÓN 1: KW */}
+
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           className="bg-stone-900/80 shadow-inner p-2 rounded-xl border border-stone-800 flex flex-col justify-center text-center transition-all cursor-pointer hover:border-indigo-500/60 hover:bg-indigo-950/30 focus:outline-none w-full"
@@ -425,8 +414,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
           <p className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">KW</p>
           <p className="text-xl font-bold text-indigo-400">{fmt(datos.kvaTermino)}</p>
         </button>
-        
-        {/* BOTÓN 2: Porcentaje Carga */}
+
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           className="p-2 rounded-xl border shadow-inner flex flex-col justify-center text-center transition-all cursor-pointer hover:border-emerald-500/60 hover:bg-emerald-950/30 focus:outline-none w-full"
@@ -452,8 +440,7 @@ const IcetelProgramaVista = () => {
   const [paginaActual, setPaginaActual] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Nuevo estado unificado para manejar qué sala y qué cuadro se apretó
+
   const [modalConfig, setModalConfig] = useState({ sala: null, metrica: null });
   const [mostrarNovedades, setMostrarNovedades] = useState(false);
 
@@ -470,7 +457,7 @@ const IcetelProgramaVista = () => {
 
       chillers.sort((a, b) => (a.equipo || '').localeCompare(b.equipo || ''));
 
-      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2; 
+      const indiceInicioPanel3 = ITEMS_POR_PAGINA * 2;
       let salasModificadas = [...salas];
 
       while (salasModificadas.length < indiceInicioPanel3) {
@@ -541,9 +528,8 @@ const IcetelProgramaVista = () => {
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
   return (
-    <div className="min-h-screen lg:h-screen w-full lg:w-screen overflow-y-auto lg:overflow-hidden bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
-      
-      {/* HEADER */}
+    <div className="min-h-[100dvh] lg:h-[100dvh] w-full overflow-y-auto bg-[#0a0a0c] p-4 flex flex-col font-sans text-stone-200">
+
       <header className="mb-3 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-3 shrink-0">
         <div>
           <h1 className="text-xl lg:text-2xl font-extrabold text-stone-100 tracking-tight">Icetel Visualización</h1>
@@ -577,7 +563,6 @@ const IcetelProgramaVista = () => {
         </div>
       )}
 
-      {/* CONTENEDOR PRINCIPAL */}
       <div className="flex flex-col lg:flex-row flex-1 gap-4 lg:gap-6 min-h-0">
 
         {/* CLIMA */}
@@ -585,7 +570,7 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold mb-2 border-b-2 border-stone-700/80 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-stone-400 to-stone-200 drop-shadow-sm">
             Clima
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
             {climaEnPantalla.map((item, i) => {
               if (!item) {
                 return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
@@ -594,15 +579,14 @@ const IcetelProgramaVista = () => {
                 return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
               }
               return (
-                <TarjetaClima 
-                  key={item.id || `sala-${i}`} 
-                  datos={item} 
-                  onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })} 
+                <TarjetaClima
+                  key={item.id || `sala-${i}`}
+                  datos={item}
+                  onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
                 />
               );
             })}
           </div>
-          <div className="hidden lg:block lg:flex-1 shrink-0"></div>
         </div>
 
         <div className="hidden lg:block w-[2px] bg-stone-800/80 rounded-full my-4"></div>
@@ -613,27 +597,24 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold mb-2 border-b-2 border-amber-800/50 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-300 drop-shadow-sm">
             Energía
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 flex-1 min-h-0">
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) {
                 return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
               }
-                        return (
-            <TarjetaEnergia 
-              key={ups.id || `ups-${i}`} 
-              datos={ups} 
-              onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })} 
-            />
-          );
-
+              return (
+                <TarjetaEnergia
+                  key={ups.id || `ups-${i}`}
+                  datos={ups}
+                  onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
+                />
+              );
             })}
           </div>
-          <div className="hidden lg:block lg:flex-1 shrink-0"></div>
         </div>
 
       </div>
 
-      {/* MODALES */}
       <ModalDetalle config={modalConfig} onClose={() => setModalConfig({ sala: null, metrica: null })} />
       {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} />}
 
