@@ -29,3 +29,9 @@ html, body, #root {
   background-color: #64748b; /* slate-500 */
 }
 
+@media (orientation: landscape) {
+  body, #root {
+    min-width: 1200px;
+    overflow-x: hidden; 
+  }
+}
