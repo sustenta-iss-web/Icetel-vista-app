@@ -57,7 +57,7 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- MODAL DINÁMICO DE DETALLE (KWF y Energía) ---
+// --- MODAL DINÁMICO DE DETALLE ---
 const ModalDetalle = ({ config, onClose }) => {
   const { sala, metrica } = config;
   if (!sala || !metrica) return null;
@@ -68,16 +68,14 @@ const ModalDetalle = ({ config, onClose }) => {
   if (metrica === 'temperatura') {
     titulo = `Temperaturas - ${sala.nombre}`;
     contenido = (
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {(!sala.equipos || sala.equipos.length === 0) ? (
-          <p className="text-slate-500 text-sm text-center py-4">No hay equipos registrados.</p>
+          <p style={{ color: '#64748b', fontSize: '14px', textAlign: 'center', padding: '16px' }}>No hay equipos registrados.</p>
         ) : (
           sala.equipos.map((eq, i) => (
-            <div key={i} className="bg-slate-900/60 rounded-xl px-4 py-3 border border-slate-800 flex justify-between items-center">
-              <span className="font-bold text-slate-200">{eq.nombre || 'Equipo'}</span>
-              <div className="flex gap-4 text-sm bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner">
-                <span className="text-blue-400 font-bold">{fmt(eq.temperatura, '°C')}</span>
-              </div>
+            <div key={i} style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '10px 14px', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{eq.nombre || 'Equipo'}</span>
+              <span style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '14px' }}>{fmt(eq.temperatura, '°C')}</span>
             </div>
           ))
         )}
@@ -86,16 +84,14 @@ const ModalDetalle = ({ config, onClose }) => {
   } else if (metrica === 'humedad') {
     titulo = `Humedad - ${sala.nombre}`;
     contenido = (
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {(!sala.equipos || sala.equipos.length === 0) ? (
-          <p className="text-slate-500 text-sm text-center py-4">No hay equipos registrados.</p>
+          <p style={{ color: '#64748b', fontSize: '14px', textAlign: 'center', padding: '16px' }}>No hay equipos registrados.</p>
         ) : (
           sala.equipos.map((eq, i) => (
-            <div key={i} className="bg-slate-900/60 rounded-xl px-4 py-3 border border-slate-800 flex justify-between items-center">
-              <span className="font-bold text-slate-200">{eq.nombre || 'Equipo'}</span>
-              <div className="flex gap-4 text-sm bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner">
-                <span className="text-cyan-400 font-bold">{fmt(eq.humedad, '%')}</span>
-              </div>
+            <div key={i} style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '10px 14px', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{eq.nombre || 'Equipo'}</span>
+              <span style={{ color: '#22d3ee', fontWeight: 'bold', fontSize: '14px' }}>{fmt(eq.humedad, '%')}</span>
             </div>
           ))
         )}
@@ -104,26 +100,26 @@ const ModalDetalle = ({ config, onClose }) => {
   } else if (metrica === 'kwf') {
     titulo = `Estado de Circuitos KWF - ${sala.nombre}`;
     contenido = (
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {(!sala.detalleKwf || sala.detalleKwf.length === 0) ? (
-          <p className="text-slate-500 text-sm text-center py-4">No hay detalle de circuitos registrado.</p>
+          <p style={{ color: '#64748b', fontSize: '14px', textAlign: 'center', padding: '16px' }}>No hay detalle de circuitos registrado.</p>
         ) : (
           sala.detalleKwf.map((eq, i) => (
-            <div key={i} className="bg-slate-900/60 rounded-xl p-3 border border-slate-800 flex flex-col gap-2">
-              <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
-                <span className="font-bold text-slate-200">{sala.nombre} - {eq.equipo}</span>
-                <span className={`text-xs font-bold px-2 py-1 rounded-md ${eq.val === 1 ? 'bg-emerald-950/50 text-emerald-400' : eq.val === 0.5 ? 'bg-amber-950/50 text-amber-400' : 'bg-red-950/50 text-red-400'}`}>
+            <div key={i} style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '10px', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(30, 41, 59, 0.8)', paddingBottom: '6px' }}>
+                <span style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{sala.nombre} - {eq.equipo}</span>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', backgroundColor: eq.val === 1 ? 'rgba(6, 78, 59, 0.5)' : 'rgba(127, 29, 29, 0.5)', color: eq.val === 1 ? '#34d399' : '#f87171' }}>
                   {eq.val * 100}% Op.
                 </span>
               </div>
-              <div className="flex gap-2">
-                <div className="flex-1 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner flex justify-between items-center">
-                  <span className="text-xs text-slate-500">Circuito 1</span>
-                  <span className={`text-sm font-bold ${eq.c1 === 'OK' ? 'text-emerald-400' : eq.c1 === 'NOK' ? 'text-red-400' : 'text-slate-400'}`}>{eq.c1}</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ flex: 1, backgroundColor: '#020617', padding: '8px', borderRadius: '6px', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>C1</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: eq.c1 === 'OK' ? '#34d399' : '#f87171' }}>{eq.c1}</span>
                 </div>
-                <div className="flex-1 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner flex justify-between items-center">
-                  <span className="text-xs text-slate-500">Circuito 2</span>
-                  <span className={`text-sm font-bold ${eq.c2 === 'OK' ? 'text-emerald-400' : eq.c2 === 'NOK' ? 'text-red-400' : 'text-slate-400'}`}>{eq.c2}</span>
+                <div style={{ flex: 1, backgroundColor: '#020617', padding: '8px', borderRadius: '6px', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>C2</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: eq.c2 === 'OK' ? '#34d399' : '#f87171' }}>{eq.c2}</span>
                 </div>
               </div>
             </div>
@@ -134,18 +130,18 @@ const ModalDetalle = ({ config, onClose }) => {
   } else if (metrica === 'cargati') {
     titulo = `Detalle Carga TI - ${sala.nombre}`;
     contenido = (
-      <div className="bg-slate-900/60 rounded-xl p-5 border border-slate-800 space-y-4">
-        <div className="flex justify-between border-b border-slate-800/80 pb-3">
-          <span className="text-slate-400 font-medium">Capacidad Total TI (Máx TI)</span>
-          <span className="text-slate-200 font-bold text-lg">{fmt(sala.maxTi, ' kW')}</span>
+      <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '16px', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+          <span style={{ color: '#94a3b8' }}>Capacidad Total TI</span>
+          <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{fmt(sala.maxTi, ' kW')}</span>
         </div>
-        <div className="flex justify-between border-b border-slate-800/80 pb-3">
-          <span className="text-slate-400 font-medium">Carga TI Actual</span>
-          <span className="text-orange-400 font-bold text-lg">{fmt(sala.cargaTiKw, ' kW')}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+          <span style={{ color: '#94a3b8' }}>Carga TI Actual</span>
+          <span style={{ color: '#fb923c', fontWeight: 'bold' }}>{fmt(sala.cargaTiKw, ' kW')}</span>
         </div>
-        <div className="flex justify-between items-center pt-1">
-          <span className="text-slate-400 font-medium">Porcentaje de Carga</span>
-          <span className="text-orange-300 font-extrabold text-xl bg-orange-950/30 px-3 py-1 rounded-lg border border-orange-900/50">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: '#94a3b8' }}>Porcentaje de Carga</span>
+          <span style={{ color: '#fbbf24', fontWeight: 'bold', backgroundColor: 'rgba(124, 45, 18, 0.3)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(194, 65, 12, 0.5)' }}>
             {fmtPorcentaje(sala.cargaTi)}
           </span>
         </div>
@@ -154,18 +150,18 @@ const ModalDetalle = ({ config, onClose }) => {
   } else if (metrica === 'energia') {
     titulo = `Detalle UPS - ${sala.equipo}`;
     contenido = (
-      <div className="bg-slate-900/60 rounded-xl p-5 border border-slate-800 space-y-4">
-        <div className="flex justify-between border-b border-slate-800/80 pb-3">
-          <span className="text-slate-400 font-medium">KVA Inicio</span>
-          <span className="text-amber-400 font-bold text-lg">{fmt(sala.kvaInicio)}</span>
+      <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '16px', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+          <span style={{ color: '#94a3b8' }}>KVA Inicio</span>
+          <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{fmt(sala.kvaInicio)}</span>
         </div>
-        <div className="flex justify-between border-b border-slate-800/80 pb-3">
-          <span className="text-slate-400 font-medium">KW Término</span>
-          <span className="text-indigo-400 font-bold text-lg">{fmt(sala.kvaTermino)}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+          <span style={{ color: '#94a3b8' }}>KW Término</span>
+          <span style={{ color: '#818cf8', fontWeight: 'bold' }}>{fmt(sala.kvaTermino)}</span>
         </div>
-        <div className="flex justify-between items-center pt-1">
-          <span className="text-slate-400 font-medium">Porcentaje Carga</span>
-          <span className="text-emerald-400 font-extrabold text-xl bg-emerald-950/30 px-3 py-1 rounded-lg border border-emerald-900/50">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: '#94a3b8' }}>Porcentaje Carga</span>
+          <span style={{ color: '#34d399', fontWeight: 'bold', backgroundColor: 'rgba(6, 78, 59, 0.3)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(4, 120, 87, 0.5)' }}>
             {fmtPorcentaje(sala.porcentajeCarga)}
           </span>
         </div>
@@ -174,15 +170,13 @@ const ModalDetalle = ({ config, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-5 border-b border-slate-800">
-          <h3 className="text-xl font-bold text-slate-100">{titulo}</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-2xl font-bold px-2 py-1 leading-none rounded-md">×</button>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
+      <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '14px', width: '100%', maxWidth: '420px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid #1e293b' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#f8fafc', margin: 0 }}>{titulo}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}>×</button>
         </div>
-        <div className="overflow-y-auto p-5">
-          {contenido}
-        </div>
+        <div style={{ overflowY: 'auto', padding: '16px' }}>{contenido}</div>
       </div>
     </div>
   );
@@ -191,82 +185,49 @@ const ModalDetalle = ({ config, onClose }) => {
 // --- MODAL DE NOVEDADES ---
 const ModalNovedades = ({ novedades, onClose }) => {
   if (!novedades) return null;
-
   const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
   const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia') || (n.area || '').toLowerCase().includes('energía'));
-  const novOtras = novedades.filter(n => {
-    const a = (n.area || '').toLowerCase();
-    return !a.includes('clima') && !a.includes('energia') && !a.includes('energía');
-  });
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col text-slate-200" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-5 border-b border-slate-800 shrink-0">
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
+      <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '14px', width: '100%', maxWidth: '800px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid #1e293b' }}>
           <div>
-            <h3 className="text-xl font-bold text-cyan-400 tracking-wide">Novedades y Observaciones de Operación</h3>
-            <p className="text-sm text-slate-400">Registro reciente clasificado por área de supervisión</p>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#22d3ee', margin: 0 }}>Novedades y Observaciones de Operación</h3>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Registro reciente clasificado por área</p>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-2xl font-bold px-3 py-1 leading-none rounded-md bg-slate-900 border border-slate-800">×</button>
+          <button onClick={onClose} style={{ background: '#020617', border: '1px solid #1e293b', color: '#64748b', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 10px', borderRadius: '6px' }}>×</button>
         </div>
-
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="flex flex-col bg-slate-900/40 p-4 rounded-xl border border-slate-800">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-3 border-b border-blue-900/40 pb-2">
-              Clima ({novClima.length})
-            </h4>
-            <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-              {novClima.length === 0 ? (
-                <p className="text-slate-500 text-xs text-center py-6">No hay novedades registradas en Clima.</p>
-              ) : (
-                novClima.map((n, i) => (
-                  <div key={i} className="bg-slate-900 border border-slate-800 p-3 rounded-lg shadow-inner space-y-1">
-                    <div className="flex justify-between text-xs text-slate-400 font-medium">
-                      <span>Sala: <strong className="text-slate-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
-                      <span className="text-cyan-500">{n.fecha}</span>
-                    </div>
-                    <p className="text-sm text-slate-200 pt-1 font-normal">{n.observacion}</p>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px', borderBottom: '1px solid rgba(59, 130, 246, 0.3)', paddingBottom: '6px', margin: '0 0 8px 0' }}>Clima ({novClima.length})</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+              {novClima.length === 0 ? <p style={{ color: '#64748b', fontSize: '11px', textAlign: 'center' }}>Sin novedades en Clima.</p> : novClima.map((n, i) => (
+                <div key={i} style={{ backgroundColor: '#020617', padding: '8px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8' }}>
+                    <span>Sala: <strong>{n.sala || '—'}</strong></span>
+                    <span style={{ color: '#22d3ee' }}>{n.fecha}</span>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col bg-slate-900/40 p-4 rounded-xl border border-slate-800">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-amber-400 mb-3 border-b border-amber-900/40 pb-2">
-              Energía ({novEnergia.length})
-            </h4>
-            <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-              {novEnergia.length === 0 ? (
-                <p className="text-slate-500 text-xs text-center py-6">No hay novedades registradas en Energía.</p>
-              ) : (
-                novEnergia.map((n, i) => (
-                  <div key={i} className="bg-slate-900 border border-slate-800 p-3 rounded-lg shadow-inner space-y-1">
-                    <div className="flex justify-between text-xs text-slate-400 font-medium">
-                      <span>Sala: <strong className="text-slate-200">{n.sala || '—'}</strong> {n.equipo ? `(${n.equipo})` : ''}</span>
-                      <span className="text-cyan-500">{n.fecha}</span>
-                    </div>
-                    <p className="text-sm text-slate-200 pt-1 font-normal">{n.observacion}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {novOtras.length > 0 && (
-          <div className="px-6 pb-6 shrink-0">
-            <p className="text-xs text-slate-500 uppercase mb-2">Otras áreas / General:</p>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {novOtras.map((n, i) => (
-                <div key={i} className="bg-slate-900 border border-slate-800 p-2 rounded text-xs flex justify-between">
-                  <span><strong>{n.area || 'General'}</strong> - {n.sala}: {n.observacion}</span>
-                  <span className="text-cyan-500">{n.fecha}</span>
+                  <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '4px 0 0 0' }}>{n.observacion}</p>
                 </div>
               ))}
             </div>
           </div>
-        )}
+          <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: '#fbbf24', marginBottom: '8px', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', paddingBottom: '6px', margin: '0 0 8px 0' }}>Energía ({novEnergia.length})</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+              {novEnergia.length === 0 ? <p style={{ color: '#64748b', fontSize: '11px', textAlign: 'center' }}>Sin novedades en Energía.</p> : novEnergia.map((n, i) => (
+                <div key={i} style={{ backgroundColor: '#020617', padding: '8px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8' }}>
+                    <span>Sala: <strong>{n.sala || '—'}</strong></span>
+                    <span style={{ color: '#22d3ee' }}>{n.fecha}</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '4px 0 0 0' }}>{n.observacion}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -274,7 +235,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
 
 // --- TARJETA CLIMA ---
 const TarjetaClima = ({ datos, onClickMetrica }) => {
-  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
+  if (!datos) return <div style={{ height: '100%' }}></div>;
 
   const pctKwf = datos.porcentajeOperativo;
   const hayDatoKwf = pctKwf !== undefined && pctKwf !== null;
@@ -286,56 +247,49 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
   return (
-    <div className="bg-slate-900 rounded-2xl border border-slate-700 border-t-[2px] border-t-slate-400/60 p-2.5 flex flex-col justify-between w-full" style={{ height: '145px' }}>
-      <div className="flex justify-between items-center mb-1 border-b border-slate-800 pb-1 shrink-0">
-        <h2 className="text-xs font-bold text-slate-200 truncate">{datos.nombre || 'Sala'}</h2>
-        <div className="flex gap-1">
-          <span className="text-[8px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">KWF: {fmt(datos.maxKwf)}</span>
-          <span className="text-[8px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">TI: {fmt(datos.maxTi)}</span>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '142px', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
+        <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b' }}>KWF: {fmt(datos.maxKwf)}</span>
+          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b' }}>TI: {fmt(datos.maxTi)}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5 flex-1">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
-          className="bg-blue-950/30 p-1.5 rounded-lg border border-blue-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-blue-900/40"
-          style={tempCritica ? { backgroundColor: hexA(COLOR_PREOCUPANTE, 0.18), borderColor: hexA(COLOR_PREOCUPANTE, 0.55) } : undefined}
+          style={{ backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
-          <span className="text-[9px] uppercase font-bold text-slate-500">T°</span>
-          <span className={`text-base font-bold ${tempCritica ? '' : 'text-blue-400'}`} style={tempCritica ? { color: COLOR_PREOCUPANTE } : undefined}>
-            {fmt(temp, '°C')}
-          </span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T°</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? COLOR_PREOCUPANTE : '#38bdf8' }}>{fmt(temp, '°C')}</span>
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'humedad')}
-          className="bg-cyan-950/30 p-1.5 rounded-lg border border-cyan-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-cyan-900/40"
+          style={{ backgroundColor: 'rgba(8, 51, 68, 0.3)', border: '1px solid rgba(14, 116, 144, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
-          <span className="text-[9px] uppercase font-bold text-slate-500">H%</span>
-          <span className="text-base font-bold text-cyan-400">{fmt(datos.humedad, '%')}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>H%</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#22d3ee' }}>{fmt(datos.humedad, '%')}</span>
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'kwf')}
-          className="p-1.5 rounded-lg border flex flex-col justify-center text-center cursor-pointer"
-          style={{
-            backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)',
-            borderColor: colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'
-          }}
+          style={{ backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)', border: `1px solid ${colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
-          <span className="text-[9px] uppercase font-bold text-slate-500">KWF</span>
-          <span className="text-base font-bold" style={{ color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
-          {hayDatoKwf && <span className="text-[8px] font-bold" style={{ color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
+          {hayDatoKwf && <span style={{ fontSize: '7px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'cargati')}
-          className="bg-orange-950/30 p-1.5 rounded-lg border border-orange-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-orange-900/40"
+          style={{ backgroundColor: 'rgba(124, 45, 18, 0.3)', border: '1px solid rgba(194, 65, 12, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
-          <span className="text-[9px] uppercase font-bold text-slate-500">Carga TI</span>
-          <span className="text-base font-bold text-orange-400">{fmt(datos.cargaTiKw)}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Carga TI</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#fb923c' }}>{fmt(datos.cargaTiKw)}</span>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
-            <span className="text-[8px] font-bold text-orange-300/70">{fmtPorcentaje(datos.cargaTi)}</span>
+            <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#fed7aa' }}>{fmtPorcentaje(datos.cargaTi)}</span>
           )}
         </button>
       </div>
@@ -345,28 +299,28 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
 // --- TARJETA CHILLER ---
 const TarjetaChiller = ({ datos }) => {
-  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
+  if (!datos) return <div style={{ height: '100%' }}></div>;
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div className="bg-slate-900 rounded-2xl border border-slate-700 border-t-[2px] border-t-slate-400/60 p-2.5 flex flex-col justify-between w-full" style={{ height: '145px' }}>
-      <div className="flex justify-between items-center mb-1 border-b border-slate-800 pb-1 shrink-0">
-        <h2 className="text-xs font-bold text-slate-200 truncate">{datos.equipo || 'Chiller'}</h2>
-        <div className="text-[9px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 flex gap-1">
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '142px', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
+        <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '50%' }}>{datos.equipo || 'Chiller'}</h2>
+        <div style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', display: 'flex', gap: '2px' }}>
           <span>Comp:</span>
           {statusList.length > 0 ? statusList.map((st, idx) => (
-            <span key={idx} className="font-bold text-slate-300">[{st || '—'}]</span>
+            <span key={idx} style={{ fontWeight: 'bold', color: '#cbd5e1' }}>[{st || '—'}]</span>
           )) : <span>—</span>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 flex-1">
-        <div className="bg-teal-950/30 p-1.5 rounded-lg border border-teal-900/50 flex flex-col justify-center text-center">
-          <span className="text-[9px] uppercase font-bold text-slate-500">T° Surtidor</span>
-          <span className="text-base font-bold text-teal-400">{fmt(datos.tempSurtidor, '°C')}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, marginTop: '6px' }}>
+        <div style={{ backgroundColor: 'rgba(19, 78, 74, 0.3)', border: '1px solid rgba(15, 118, 110, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Surtidor</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#2dd4bf' }}>{fmt(datos.tempSurtidor, '°C')}</span>
         </div>
-        <div className="bg-sky-950/30 p-1.5 rounded-lg border border-sky-900/50 flex flex-col justify-center text-center">
-          <span className="text-[9px] uppercase font-bold text-slate-500">T° Retorno</span>
-          <span className="text-base font-bold text-sky-400">{fmt(datos.tempRetorno, '°C')}</span>
+        <div style={{ backgroundColor: 'rgba(12, 74, 110, 0.3)', border: '1px solid rgba(3, 105, 161, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Retorno</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#38bdf8' }}>{fmt(datos.tempRetorno, '°C')}</span>
         </div>
       </div>
     </div>
@@ -375,7 +329,7 @@ const TarjetaChiller = ({ datos }) => {
 
 // --- TARJETA ENERGÍA ---
 const TarjetaEnergia = ({ datos, onClickMetrica }) => {
-  if (!datos) return <div className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
+  if (!datos) return <div style={{ height: '100%' }}></div>;
 
   const pctCarga = datos.porcentajeCarga;
   const hayDatoCarga = pctCarga !== undefined && pctCarga !== null;
@@ -383,40 +337,40 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div className="bg-slate-900 rounded-2xl border border-slate-700 border-t-[2px] border-t-amber-500/60 p-2.5 flex flex-col justify-between w-full" style={{ height: '145px' }}>
-      <div className="flex justify-between items-center mb-1 border-b border-slate-800 pb-1 shrink-0">
-        <h2 className="text-xs font-bold text-slate-200 truncate">{datos.equipo || 'UPS'}</h2>
-        <span className="text-[9px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
-          KVA: <strong className="text-amber-300">{fmt(datos.kvaInicio)}</strong>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '142px', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
+        <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.equipo || 'UPS'}</h2>
+        <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b' }}>
+          KVA: <strong style={{ color: '#fde047' }}>{fmt(datos.kvaInicio)}</strong>
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5 flex-1">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          className="bg-indigo-950/30 p-1.5 rounded-lg border border-indigo-900/50 flex flex-col justify-center text-center cursor-pointer hover:bg-indigo-900/40"
+          style={{ backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
-          <span className="text-[9px] uppercase font-bold text-slate-500">KW</span>
-          <span className="text-base font-bold text-indigo-400">{fmt(datos.kvaTermino)}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KW</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#818cf8' }}>{fmt(datos.kvaTermino)}</span>
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          className="p-1.5 rounded-lg border flex flex-col justify-center text-center cursor-pointer"
           style={{
             backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
-            borderColor: colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'
+            border: `1px solid ${colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'}`,
+            borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer'
           }}
         >
-          <span className="text-[9px] uppercase font-bold text-slate-500">% Carga</span>
-          <span className="text-base font-bold" style={{ color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>% Carga</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</span>
         </button>
       </div>
     </div>
   );
 };
 
-// --- VISTA PRINCIPAL CORREGIDA ---
+// --- VISTA PRINCIPAL ---
 const IcetelProgramaVista = () => {
   const [datosClima, setDatosClima] = useState([]);
   const [datosEnergia, setDatosEnergia] = useState([]);
@@ -495,7 +449,7 @@ const IcetelProgramaVista = () => {
     <div style={{ width: '100vw', height: '100vh', backgroundColor: '#020617', padding: '12px', boxSizing: 'border-box', overflow: 'hidden', color: '#f1f5f9', fontFamily: 'sans-serif' }}>
       
       {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', height: '10%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', height: '12%' }}>
         <div>
           <h1 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Icetel Visualización</h1>
           <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0 }}>
@@ -521,15 +475,15 @@ const IcetelProgramaVista = () => {
         </div>
       )}
 
-      {/* CONTENEDOR PRINCIPAL (Clima y Energía lado a lado por porcentaje) */}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', height: '88%', width: '100%' }}>
+      {/* CONTENEDOR PRINCIPAL */}
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', height: '85%', width: '100%' }}>
         
         {/* COLUMNA CLIMA */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0' }}>
             Clima
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', flex: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gap: '8px', flex: 1 }}>
             {climaEnPantalla.map((item, i) => {
               if (!item) return <div key={`empty-${i}`}></div>;
               if (item.tipo === 'chiller') {
@@ -554,7 +508,7 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0' }}>
             Energía
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', flex: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gap: '8px', flex: 1 }}>
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) return <div key={`empty-ups-${i}`}></div>;
               return (
