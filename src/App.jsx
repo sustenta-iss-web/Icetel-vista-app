@@ -73,11 +73,19 @@ const useResponsiveLayout = () => {
   const [layout, setLayout] = useState(calcular);
   useEffect(() => {
     const onResize = () => setLayout(calcular());
+    // En navegadores viejos (TV/celular) el ancho a veces se lee ANTES de que
+    // termine la rotación física de pantalla. Se vuelve a medir con un pequeño
+    // delay tras el evento de orientación para evitar quedarse con el valor viejo.
+    const onOrientationChange = () => {
+      onResize();
+      setTimeout(onResize, 150);
+      setTimeout(onResize, 400);
+    };
     window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
+    window.addEventListener('orientationchange', onOrientationChange);
     return () => {
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener('orientationchange', onOrientationChange);
     };
   }, []);
   return layout;
@@ -428,33 +436,19 @@ const IcetelProgramaVista = () => {
   const intervaloRef = useRef(null);
   const { columnas, esPantallaGrande } = useResponsiveLayout();
 
-  // --- CONTROL DINÁMICO DE VIEWPORT Y ZOOM ---
-  // El truco de "alejar" el zoom (width=1200, initial-scale=0.7) es SOLO para la
-  // TV real: pantalla grande (>=1024px) Y en landscape. Un celular en landscape
-  // (ancho típico ~700-900px) NO entra en esPantallaGrande, así que conserva su
-  // escala normal y se puede leer sin necesidad de zoom manual.
+  // --- VIEWPORT: siempre tamaño real, sin zoom artificial ---
+  // Se probó alejar el zoom para la TV (width=1200, initial-scale reducido) pero
+  // se veía todo muy chico. Ahora se deja fijo en tamaño real; el layout se
+  // adapta con CSS (columnas, tamaños de fuente) en vez de "engañar" al navegador
+  // con un viewport falso.
   useEffect(() => {
-    const ajustarPantalla = () => {
-      let viewport = document.querySelector('meta[name="viewport"]');
-      if (!viewport) {
-        viewport = document.createElement('meta');
-        viewport.name = 'viewport';
-        document.head.appendChild(viewport);
-      }
-      const esTvLandscape = window.innerWidth >= 1024 && window.matchMedia("(orientation: landscape)").matches;
-      if (esTvLandscape) {
-        viewport.setAttribute("content", "width=1200, initial-scale=0.7, maximum-scale=1.0, user-scalable=no");
-      } else {
-        viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
-      }
-    };
-    ajustarPantalla();
-    window.addEventListener("resize", ajustarPantalla);
-    window.addEventListener("orientationchange", ajustarPantalla);
-    return () => {
-      window.removeEventListener("resize", ajustarPantalla);
-      window.removeEventListener("orientationchange", ajustarPantalla);
-    };
+    let viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) {
+      viewport = document.createElement('meta');
+      viewport.name = 'viewport';
+      document.head.appendChild(viewport);
+    }
+    viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
   }, []);
 
   const cargarDatos = useCallback(async () => {
@@ -547,8 +541,7 @@ const IcetelProgramaVista = () => {
   return (
     <div style={{
       width: '100%',
-      height: esPantallaGrande ? '100dvh' : 'auto',
-      minHeight: '100dvh',
+      height: '100dvh',
       overflowY: 'auto',
       WebkitOverflowScrolling: 'touch',
       backgroundColor: '#020617',
