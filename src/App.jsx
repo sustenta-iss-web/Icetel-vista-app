@@ -365,7 +365,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: '6px', rowGap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
           style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
@@ -422,7 +422,7 @@ const TarjetaChiller = ({ datos }) => {
           )) : <span>—</span>}
         </div>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: '6px', rowGap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <div style={{ width: 'calc(50% - 3px)', backgroundColor: 'rgba(19, 78, 74, 0.3)', border: '1px solid rgba(15, 118, 110, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0, boxSizing: 'border-box' }}>
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Surtidor</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#2dd4bf' }}>{fmt(datos.tempSurtidor, '°C')}</span>
@@ -454,7 +454,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: '6px', rowGap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           style={{ width: 'calc(50% - 3px)', backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
@@ -603,8 +603,16 @@ const IcetelProgramaVista = () => {
   // Chromium muy viejo que no soporta bien `display: grid` con
   // `grid-template-rows: repeat(...)`. Flexbox con wrap tiene soporte mucho
   // más amplio en WebViews antiguos y da el mismo resultado visual.
-  const gapPx = 8;
-  const anchoTarjeta = `calc(${100 / columnas}% - ${(gapPx * (columnas - 1)) / columnas}px)`;
+  //
+  // SEPARACIÓN ENTRE TARJETAS: se usan dos valores distintos (columna vs
+  // fila) en vez de un único `gapPx`. La separación vertical (entre filas)
+  // es un poco mayor que la horizontal (entre columnas), pero ambas se
+  // mantienen SIEMPRE por debajo de la separación entre las columnas de
+  // Clima y Energía (16px en TV/landscape, 18px en pantallas chicas), para
+  // que esa división principal siga siendo la más marcada visualmente.
+  const gapColumnas = 8; // separación horizontal entre tarjetas
+  const gapFilas = 12;   // separación vertical entre tarjetas (leve, un poco mayor que la horizontal)
+  const anchoTarjeta = `calc(${100 / columnas}% - ${(gapColumnas * (columnas - 1)) / columnas}px)`;
   // TV (pantalla grande): 2 filas fijas (ITEMS_POR_PAGINA / columnas), todo
   // visible sin scroll. Pantallas chicas: alto fijo razonable, con scroll si
   // no entra todo.
@@ -626,7 +634,7 @@ const IcetelProgramaVista = () => {
   const calcularAltoTarjetaPx = (alturaDisponible) => {
     if (!esPantallaGrande) return null; // pantallas chicas: alto automático
     if (!alturaDisponible || !filas) return 130; // valor de arranque mientras se mide
-    const alto = (alturaDisponible - gapPx * (filas - 1)) / filas;
+    const alto = (alturaDisponible - gapFilas * (filas - 1)) / filas;
     return Math.max(70, Math.floor(alto));
   };
   const altoTarjetaClima = calcularAltoTarjetaPx(alturaDisponibleClima);
@@ -692,7 +700,7 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
-          <div ref={climaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, height: esPantallaGrande ? `${alturaDisponibleClima || altoTarjetaClima * filas + gapPx * (filas - 1)}px` : undefined, alignContent: 'flex-start' }}>
+          <div ref={climaRef} style={{ display: 'flex', flexWrap: 'wrap', columnGap: `${gapColumnas}px`, rowGap: `${gapFilas}px`, height: esPantallaGrande ? `${alturaDisponibleClima || altoTarjetaClima * filas + gapFilas * (filas - 1)}px` : undefined, alignContent: 'flex-start' }}>
             {climaEnPantalla.map((item, i) => {
               const contenido = !item
                 ? null
@@ -725,7 +733,7 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Energía
           </h2>
-          <div ref={energiaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, height: esPantallaGrande ? `${alturaDisponibleEnergia || altoTarjetaEnergia * filas + gapPx * (filas - 1)}px` : undefined, alignContent: 'flex-start' }}>
+          <div ref={energiaRef} style={{ display: 'flex', flexWrap: 'wrap', columnGap: `${gapColumnas}px`, rowGap: `${gapFilas}px`, height: esPantallaGrande ? `${alturaDisponibleEnergia || altoTarjetaEnergia * filas + gapFilas * (filas - 1)}px` : undefined, alignContent: 'flex-start' }}>
             {energiaEnPantalla.map((ups, i) => {
               const contenido = !ups ? null : (
                 <TarjetaEnergia
