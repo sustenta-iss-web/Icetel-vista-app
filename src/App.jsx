@@ -57,6 +57,29 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
+// --- HOOK: layout responsive (reemplaza los breakpoints de Tailwind lg:) ---
+const useResponsiveLayout = () => {
+  const calcular = () => {
+    if (typeof window === 'undefined') return { esMovilVertical: false, ancho: 1200 };
+    const ancho = window.innerWidth;
+    const alto = window.innerHeight;
+    // "Móvil vertical" = pantalla angosta o en modo retrato (no la TV, que siempre es ancha)
+    const esMovilVertical = ancho < 900 || alto > ancho;
+    return { esMovilVertical, ancho };
+  };
+  const [layout, setLayout] = useState(calcular);
+  useEffect(() => {
+    const onResize = () => setLayout(calcular());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, []);
+  return layout;
+};
+
 // --- MODAL DINÁMICO DE DETALLE ---
 const ModalDetalle = ({ config, onClose }) => {
   const { sala, metrica } = config;
@@ -108,18 +131,18 @@ const ModalDetalle = ({ config, onClose }) => {
             <div key={i} style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '10px', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(30, 41, 59, 0.8)', paddingBottom: '6px' }}>
                 <span style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{sala.nombre} - {eq.equipo}</span>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', backgroundColor: eq.val === 1 ? 'rgba(6, 78, 59, 0.5)' : 'rgba(127, 29, 29, 0.5)', color: eq.val === 1 ? '#34d399' : '#f87171' }}>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', backgroundColor: eq.val === 1 ? 'rgba(6, 78, 59, 0.5)' : eq.val === 0.5 ? 'rgba(120, 53, 15, 0.5)' : 'rgba(127, 29, 29, 0.5)', color: eq.val === 1 ? '#34d399' : eq.val === 0.5 ? '#fbbf24' : '#f87171' }}>
                   {eq.val * 100}% Op.
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div style={{ flex: 1, backgroundColor: '#020617', padding: '8px', borderRadius: '6px', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>C1</span>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: eq.c1 === 'OK' ? '#34d399' : '#f87171' }}>{eq.c1}</span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Circuito 1</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: eq.c1 === 'OK' ? '#34d399' : eq.c1 === 'NOK' ? '#f87171' : '#94a3b8' }}>{eq.c1}</span>
                 </div>
                 <div style={{ flex: 1, backgroundColor: '#020617', padding: '8px', borderRadius: '6px', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>C2</span>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: eq.c2 === 'OK' ? '#34d399' : '#f87171' }}>{eq.c2}</span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Circuito 2</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: eq.c2 === 'OK' ? '#34d399' : eq.c2 === 'NOK' ? '#f87171' : '#94a3b8' }}>{eq.c2}</span>
                 </div>
               </div>
             </div>
@@ -132,7 +155,7 @@ const ModalDetalle = ({ config, onClose }) => {
     contenido = (
       <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: '10px', padding: '16px', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
-          <span style={{ color: '#94a3b8' }}>Capacidad Total TI</span>
+          <span style={{ color: '#94a3b8' }}>Capacidad Total TI (Máx TI)</span>
           <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{fmt(sala.maxTi, ' kW')}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
@@ -183,10 +206,14 @@ const ModalDetalle = ({ config, onClose }) => {
 };
 
 // --- MODAL DE NOVEDADES ---
-const ModalNovedades = ({ novedades, onClose }) => {
+const ModalNovedades = ({ novedades, onClose, esMovilVertical }) => {
   if (!novedades) return null;
   const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
   const novEnergia = novedades.filter(n => (n.area || '').toLowerCase().includes('energia') || (n.area || '').toLowerCase().includes('energía'));
+  const novOtras = novedades.filter(n => {
+    const a = (n.area || '').toLowerCase();
+    return !a.includes('clima') && !a.includes('energia') && !a.includes('energía');
+  });
 
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
@@ -198,7 +225,7 @@ const ModalNovedades = ({ novedades, onClose }) => {
           </div>
           <button onClick={onClose} style={{ background: '#020617', border: '1px solid #1e293b', color: '#64748b', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 10px', borderRadius: '6px' }}>×</button>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'grid', gridTemplateColumns: esMovilVertical ? '1fr' : '1fr 1fr', gap: '16px' }}>
           <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
             <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px', borderBottom: '1px solid rgba(59, 130, 246, 0.3)', paddingBottom: '6px', margin: '0 0 8px 0' }}>Clima ({novClima.length})</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
@@ -228,14 +255,27 @@ const ModalNovedades = ({ novedades, onClose }) => {
             </div>
           </div>
         </div>
+        {novOtras.length > 0 && (
+          <div style={{ padding: '0 16px 16px 16px' }}>
+            <p style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>Otras áreas / General:</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '128px', overflowY: 'auto' }}>
+              {novOtras.map((n, i) => (
+                <div key={i} style={{ backgroundColor: '#020617', border: '1px solid #1e293b', padding: '6px', borderRadius: '4px', fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span><strong>{n.area || 'General'}</strong> - {n.sala}: {n.observacion}</span>
+                  <span style={{ color: '#22d3ee' }}>{n.fecha}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// --- TARJETA CLIMA ---
+// --- TARJETA CLIMA (altura flexible, ya no fija en 142px) ---
 const TarjetaClima = ({ datos, onClickMetrica }) => {
-  if (!datos) return <div style={{ height: '100%' }}></div>;
+  if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
   const pctKwf = datos.porcentajeOperativo;
   const hayDatoKwf = pctKwf !== undefined && pctKwf !== null;
@@ -247,19 +287,19 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '142px', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b' }}>KWF: {fmt(datos.maxKwf)}</span>
-          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b' }}>TI: {fmt(datos.maxTi)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max KWF: {fmt(datos.maxKwf)}</span>
+          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max TI: {fmt(datos.maxTi)}</span>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, marginTop: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
-          style={{ backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{ backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T°</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? COLOR_PREOCUPANTE : '#38bdf8' }}>{fmt(temp, '°C')}</span>
@@ -267,7 +307,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'humedad')}
-          style={{ backgroundColor: 'rgba(8, 51, 68, 0.3)', border: '1px solid rgba(14, 116, 144, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{ backgroundColor: 'rgba(8, 51, 68, 0.3)', border: '1px solid rgba(14, 116, 144, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>H%</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#22d3ee' }}>{fmt(datos.humedad, '%')}</span>
@@ -275,16 +315,16 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'kwf')}
-          style={{ backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)', border: `1px solid ${colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{ backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)', border: `1px solid ${colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
-          {hayDatoKwf && <span style={{ fontSize: '7px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
+          {hayDatoKwf && <span style={{ fontSize: '7px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)} Op.</span>}
         </button>
 
         <button
           onClick={() => onClickMetrica(datos, 'cargati')}
-          style={{ backgroundColor: 'rgba(124, 45, 18, 0.3)', border: '1px solid rgba(194, 65, 12, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{ backgroundColor: 'rgba(124, 45, 18, 0.3)', border: '1px solid rgba(194, 65, 12, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Carga TI</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#fb923c' }}>{fmt(datos.cargaTiKw)}</span>
@@ -299,12 +339,12 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
 // --- TARJETA CHILLER ---
 const TarjetaChiller = ({ datos }) => {
-  if (!datos) return <div style={{ height: '100%' }}></div>;
+  if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '142px', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '50%' }}>{datos.equipo || 'Chiller'}</h2>
         <div style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', display: 'flex', gap: '2px' }}>
           <span>Comp:</span>
@@ -313,12 +353,12 @@ const TarjetaChiller = ({ datos }) => {
           )) : <span>—</span>}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, marginTop: '6px' }}>
-        <div style={{ backgroundColor: 'rgba(19, 78, 74, 0.3)', border: '1px solid rgba(15, 118, 110, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+        <div style={{ backgroundColor: 'rgba(19, 78, 74, 0.3)', border: '1px solid rgba(15, 118, 110, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0 }}>
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Surtidor</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#2dd4bf' }}>{fmt(datos.tempSurtidor, '°C')}</span>
         </div>
-        <div style={{ backgroundColor: 'rgba(12, 74, 110, 0.3)', border: '1px solid rgba(3, 105, 161, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ backgroundColor: 'rgba(12, 74, 110, 0.3)', border: '1px solid rgba(3, 105, 161, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0 }}>
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Retorno</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#38bdf8' }}>{fmt(datos.tempRetorno, '°C')}</span>
         </div>
@@ -329,7 +369,7 @@ const TarjetaChiller = ({ datos }) => {
 
 // --- TARJETA ENERGÍA ---
 const TarjetaEnergia = ({ datos, onClickMetrica }) => {
-  if (!datos) return <div style={{ height: '100%' }}></div>;
+  if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
   const pctCarga = datos.porcentajeCarga;
   const hayDatoCarga = pctCarga !== undefined && pctCarga !== null;
@@ -337,18 +377,18 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '142px', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.equipo || 'UPS'}</h2>
-        <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b' }}>
+        <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
           KVA: <strong style={{ color: '#fde047' }}>{fmt(datos.kvaInicio)}</strong>
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, marginTop: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          style={{ backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{ backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KW</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#818cf8' }}>{fmt(datos.kvaTermino)}</span>
@@ -359,7 +399,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
           style={{
             backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
             border: `1px solid ${colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'}`,
-            borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer'
+            borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0
           }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>% Carga</span>
@@ -383,6 +423,28 @@ const IcetelProgramaVista = () => {
   const [mostrarNovedades, setMostrarNovedades] = useState(false);
 
   const intervaloRef = useRef(null);
+  const { esMovilVertical } = useResponsiveLayout();
+
+  // --- CONTROL DINÁMICO DE VIEWPORT Y ZOOM (restaurado: crítico para TV Android 7) ---
+  useEffect(() => {
+    const ajustarPantalla = () => {
+      let viewport = document.querySelector('meta[name="viewport"]');
+      if (!viewport) {
+        viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        document.head.appendChild(viewport);
+      }
+      const esPantallaAnchaHorizontal = window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 900;
+      if (esPantallaAnchaHorizontal) {
+        viewport.setAttribute("content", "width=1200, initial-scale=0.2, maximum-scale=1.0, user-scalable=no");
+      } else {
+        viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
+      }
+    };
+    ajustarPantalla();
+    window.addEventListener("resize", ajustarPantalla);
+    return () => window.removeEventListener("resize", ajustarPantalla);
+  }, []);
 
   const cargarDatos = useCallback(async () => {
     try {
@@ -440,18 +502,41 @@ const IcetelProgramaVista = () => {
     return () => { if (intervaloRef.current) clearInterval(intervaloRef.current); };
   }, [reiniciarRotacion]);
 
+  // --- NAVEGACIÓN POR TECLADO (restaurada, útil para control remoto de TV) ---
+  useEffect(() => {
+    const manejarTeclado = (ev) => {
+      if (totalPaginas <= 1) return;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        setPaginaActual((p) => (p + 1) % totalPaginas);
+        reiniciarRotacion();
+      } else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        setPaginaActual((p) => (p - 1 + totalPaginas) % totalPaginas);
+        reiniciarRotacion();
+      }
+    };
+    window.addEventListener('keydown', manejarTeclado);
+    return () => window.removeEventListener('keydown', manejarTeclado);
+  }, [totalPaginas, reiniciarRotacion]);
+
   const indiceInicio = paginaActual * ITEMS_POR_PAGINA;
   const indiceFin = indiceInicio + ITEMS_POR_PAGINA;
   const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
+  // Grid: en TV/desktop 3 columnas x 2 filas; en móvil vertical 2 columnas x 3 filas
+  const gridCols = esMovilVertical ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
+  const gridRows = esMovilVertical ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)';
+  const alturaMinGrid = esMovilVertical ? '480px' : '0px';
+
   return (
-    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#020617', padding: '12px', boxSizing: 'border-box', overflow: 'hidden', color: '#f1f5f9', fontFamily: 'sans-serif' }}>
-      
+    <div style={{ width: '100%', minHeight: '100dvh', backgroundColor: '#020617', padding: esMovilVertical ? '10px' : '14px', boxSizing: 'border-box', color: '#f1f5f9', fontFamily: 'sans-serif', display: 'flex', flexDirection: 'column' }}>
+
       {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', height: '12%' }}>
+      <div style={{ display: 'flex', flexDirection: esMovilVertical ? 'column' : 'row', justifyContent: 'space-between', alignItems: esMovilVertical ? 'flex-start' : 'center', gap: '8px', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', flexShrink: 0 }}>
         <div>
-          <h1 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Icetel Visualización</h1>
+          <h1 style={{ fontSize: esMovilVertical ? '16px' : '18px', fontWeight: 'bold', margin: 0 }}>Icetel Visualización</h1>
           <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0 }}>
             {cargando ? 'Cargando...' : `Panel ${paginaActual + 1} de ${totalPaginas} (Rotación 10s)`}
           </p>
@@ -463,27 +548,30 @@ const IcetelProgramaVista = () => {
           >
             Novedades ({novedades.length})
           </button>
-          <div style={{ backgroundColor: '#0f172a', padding: '6px 10px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '11px', fontWeight: 'bold', color: error ? '#ef4444' : '#10b981' }}>
-            {error ? 'Error' : 'EN LÍNEA'}
-          </div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ backgroundColor: '#0f172a', padding: '6px 10px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '11px', fontWeight: 'bold', color: error ? '#ef4444' : '#10b981', cursor: 'pointer' }}
+          >
+            {error ? 'Error de conexión' : 'EN LÍNEA'}
+          </button>
         </div>
       </div>
 
       {error && (
-        <div style={{ marginBottom: '8px', backgroundColor: 'rgba(127, 29, 29, 0.4)', border: '1px solid #991b1b', color: '#f87171', fontSize: '12px', padding: '6px', borderRadius: '4px' }}>
+        <div style={{ marginBottom: '8px', backgroundColor: 'rgba(127, 29, 29, 0.4)', border: '1px solid #991b1b', color: '#f87171', fontSize: '12px', padding: '6px', borderRadius: '4px', flexShrink: 0 }}>
           Error: {error}
         </div>
       )}
 
-      {/* CONTENEDOR PRINCIPAL */}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', height: '85%', width: '100%' }}>
-        
+      {/* CONTENEDOR PRINCIPAL: columna en móvil vertical, fila en TV/desktop */}
+      <div style={{ display: 'flex', flexDirection: esMovilVertical ? 'column' : 'row', gap: esMovilVertical ? '18px' : '16px', flex: 1, minHeight: 0, width: '100%' }}>
+
         {/* COLUMNA CLIMA */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gap: '8px', flex: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gridTemplateRows: gridRows, gap: '8px', flex: 1, minHeight: alturaMinGrid }}>
             {climaEnPantalla.map((item, i) => {
               if (!item) return <div key={`empty-${i}`}></div>;
               if (item.tipo === 'chiller') {
@@ -500,15 +588,18 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        {/* LÍNEA DIVISORIA */}
-        <div style={{ width: '2px', backgroundColor: '#1e293b', borderRadius: '2px' }}></div>
+        {/* DIVISORIA: vertical en TV, horizontal en móvil */}
+        <div style={esMovilVertical
+          ? { height: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }
+          : { width: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }}
+        ></div>
 
         {/* COLUMNA ENERGÍA */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Energía
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gap: '8px', flex: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gridTemplateRows: gridRows, gap: '8px', flex: 1, minHeight: alturaMinGrid }}>
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) return <div key={`empty-ups-${i}`}></div>;
               return (
@@ -525,7 +616,7 @@ const IcetelProgramaVista = () => {
       </div>
 
       <ModalDetalle config={modalConfig} onClose={() => setModalConfig({ sala: null, metrica: null })} />
-      {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} />}
+      {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} esMovilVertical={esMovilVertical} />}
     </div>
   );
 };
