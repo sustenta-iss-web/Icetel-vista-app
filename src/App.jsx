@@ -360,8 +360,8 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max KWF: {fmt(datos.maxKwf)}</span>
-          <span style={{ fontSize: '8px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max TI: {fmt(datos.maxTi)}</span>
+          <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max KWF: {fmt(datos.maxKwf)}</span>
+          <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max TI: {fmt(datos.maxTi)}</span>
         </div>
       </div>
 
@@ -391,7 +391,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
-          {hayDatoKwf && <span style={{ fontSize: '10px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
+          {hayDatoKwf && <span style={{ fontSize: '13px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
         </button>
 
         <button
@@ -401,7 +401,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Carga TI</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#fb923c' }}>{fmt(datos.cargaTiKw)}</span>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
-            <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#fed7aa' }}>{fmtPorcentaje(datos.cargaTi)}</span>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fed7aa' }}>{fmtPorcentaje(datos.cargaTi)}</span>
           )}
         </button>
       </div>
@@ -452,7 +452,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
     <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.equipo || 'UPS'}</h2>
-        <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
           KVA: <strong style={{ color: '#fde047' }}>{fmt(datos.kvaInicio)}</strong>
         </span>
       </div>
