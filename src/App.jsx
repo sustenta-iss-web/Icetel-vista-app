@@ -447,6 +447,39 @@ const IcetelProgramaVista = () => {
 
   const intervaloRef = useRef(null);
 
+    // --- CONTROL DINÁMICO DE VIEWPORT (ROTACIÓN) ---
+  useEffect(() => {
+    const ajustarPantalla = () => {
+      // Buscamos la etiqueta viewport en el documento
+      let viewport = document.querySelector('meta[name="viewport"]');
+      
+      // Si por alguna razón no existe, la creamos
+      if (!viewport) {
+        viewport = document.createElement('meta');
+        viewport.name = 'viewport';
+        document.head.appendChild(viewport);
+      }
+
+      // Verificamos si el teléfono está en horizontal
+      if (window.matchMedia("(orientation: landscape)").matches) {
+        // Mentira de PC: Forzamos el ancho a 1200px para que Tailwind active las 3 columnas
+        viewport.setAttribute("content", "width=1200");
+      } else {
+        // Celular vertical: Volvemos a la normalidad responsiva
+        viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
+      }
+    };
+
+    // Ejecutar inmediatamente al cargar la app
+    ajustarPantalla();
+
+    // Quedarse escuchando cada vez que el usuario gire el teléfono
+    window.addEventListener("resize", ajustarPantalla);
+    
+    // Limpieza del evento cuando se cierre el componente
+    return () => window.removeEventListener("resize",ajustarPantalla);
+  }, []);
+
   const cargarDatos = useCallback(async () => {
     try {
       const res = await fetch(GAS_URL);
