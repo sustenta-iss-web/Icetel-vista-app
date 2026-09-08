@@ -577,13 +577,17 @@ const IcetelProgramaVista = () => {
             Novedades ({novedades.length})
           </button>
 
-          <div className="flex items-center space-x-2 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 shadow-inner">
+                    <button 
+            onClick={() => window.location.reload()}
+            title="Recargar página"
+            className="flex items-center space-x-2 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800 shadow-inner cursor-pointer hover:bg-slate-800 transition-all active:scale-95 focus:outline-none"
+          >
             <span className="relative flex h-3 w-3">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${error ? 'bg-red-500' : 'bg-emerald-500'} opacity-75`}></span>
               <span className={`relative inline-flex rounded-full h-3 w-3 ${error ? 'bg-red-600' : 'bg-emerald-500'}`}></span>
             </span>
             <span className="text-sm font-bold text-slate-300">{error ? 'Error de conexión' : 'EN LÍNEA'}</span>
-          </div>
+          </button>
         </div>
       </header>
 
