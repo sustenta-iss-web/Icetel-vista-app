@@ -58,7 +58,7 @@ const fmtPorcentaje = (valor) => {
 };
 
 // --- HOOK: layout responsive ---
-// El modo "desktop/TV" (Clima y Energía lado a lado, grid 3x2) se activa por
+// El modo "desktop/TV" (Clima y Energía lado a lado) se activa por
 // ORIENTACIÓN (ancho > alto = landscape), no por un umbral de ancho fijo. Así
 // un celular acostado (aunque tenga solo ~740-900px de ancho) también imita el
 // layout de escritorio, igual que una TV real.
@@ -238,8 +238,8 @@ const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
           </div>
           <button onClick={onClose} style={{ background: '#020617', border: '1px solid #1e293b', color: '#64748b', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 10px', borderRadius: '6px' }}>×</button>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'grid', gridTemplateColumns: columnaUnica ? '1fr' : '1fr 1fr', gap: '16px' }}>
-          <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: columnaUnica ? 'column' : 'row', gap: '16px' }}>
+          <div style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
             <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: '#60a5fa', marginBottom: '8px', borderBottom: '1px solid rgba(59, 130, 246, 0.3)', paddingBottom: '6px', margin: '0 0 8px 0' }}>Clima ({novClima.length})</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
               {novClima.length === 0 ? <p style={{ color: '#64748b', fontSize: '11px', textAlign: 'center' }}>Sin novedades en Clima.</p> : novClima.map((n, i) => (
@@ -253,7 +253,7 @@ const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
               ))}
             </div>
           </div>
-          <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
+          <div style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: '12px', borderRadius: '10px', border: '1px solid #1e293b' }}>
             <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: '#fbbf24', marginBottom: '8px', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', paddingBottom: '6px', margin: '0 0 8px 0' }}>Energía ({novEnergia.length})</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
               {novEnergia.length === 0 ? <p style={{ color: '#64748b', fontSize: '11px', textAlign: 'center' }}>Sin novedades en Energía.</p> : novEnergia.map((n, i) => (
@@ -309,10 +309,10 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
-          style={{ backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T°</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? COLOR_PREOCUPANTE : '#38bdf8' }}>{fmt(temp, '°C')}</span>
@@ -320,7 +320,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'humedad')}
-          style={{ backgroundColor: 'rgba(8, 51, 68, 0.3)', border: '1px solid rgba(14, 116, 144, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', backgroundColor: 'rgba(8, 51, 68, 0.3)', border: '1px solid rgba(14, 116, 144, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>H%</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#22d3ee' }}>{fmt(datos.humedad, '%')}</span>
@@ -328,7 +328,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'kwf')}
-          style={{ backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)', border: `1px solid ${colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)', border: `1px solid ${colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
@@ -337,7 +337,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
         <button
           onClick={() => onClickMetrica(datos, 'cargati')}
-          style={{ backgroundColor: 'rgba(124, 45, 18, 0.3)', border: '1px solid rgba(194, 65, 12, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', backgroundColor: 'rgba(124, 45, 18, 0.3)', border: '1px solid rgba(194, 65, 12, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Carga TI</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#fb923c' }}>{fmt(datos.cargaTiKw)}</span>
@@ -366,12 +366,12 @@ const TarjetaChiller = ({ datos }) => {
           )) : <span>—</span>}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
-        <div style={{ backgroundColor: 'rgba(19, 78, 74, 0.3)', border: '1px solid rgba(15, 118, 110, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+        <div style={{ width: 'calc(50% - 3px)', backgroundColor: 'rgba(19, 78, 74, 0.3)', border: '1px solid rgba(15, 118, 110, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0, boxSizing: 'border-box' }}>
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Surtidor</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#2dd4bf' }}>{fmt(datos.tempSurtidor, '°C')}</span>
         </div>
-        <div style={{ backgroundColor: 'rgba(12, 74, 110, 0.3)', border: '1px solid rgba(3, 105, 161, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0 }}>
+        <div style={{ width: 'calc(50% - 3px)', backgroundColor: 'rgba(12, 74, 110, 0.3)', border: '1px solid rgba(3, 105, 161, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 0, boxSizing: 'border-box' }}>
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T° Retorno</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#38bdf8' }}>{fmt(datos.tempRetorno, '°C')}</span>
         </div>
@@ -398,10 +398,10 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          style={{ backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0 }}
+          style={{ width: 'calc(50% - 3px)', backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KW</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#818cf8' }}>{fmt(datos.kvaTermino)}</span>
@@ -410,9 +410,10 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           style={{
+            width: 'calc(50% - 3px)',
             backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
             border: `1px solid ${colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'}`,
-            borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0
+            borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box'
           }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>% Carga</span>
@@ -439,10 +440,6 @@ const IcetelProgramaVista = () => {
   const { columnas, esPantallaGrande } = useResponsiveLayout();
 
   // --- VIEWPORT: siempre tamaño real, sin zoom artificial ---
-  // Se probó alejar el zoom para la TV (width=1200, initial-scale reducido) pero
-  // se veía todo muy chico. Ahora se deja fijo en tamaño real; el layout se
-  // adapta con CSS (columnas, tamaños de fuente) en vez de "engañar" al navegador
-  // con un viewport falso.
   useEffect(() => {
     let viewport = document.querySelector('meta[name="viewport"]');
     if (!viewport) {
@@ -532,13 +529,20 @@ const IcetelProgramaVista = () => {
   const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
-  const gridColsCss = `repeat(${columnas}, 1fr)`;
-  // TV (pantalla grande): 2 filas fijas, todo visible sin scroll (así funciona la
-  // rotación automática de páginas). En cualquier pantalla más chica (celular
-  // vertical u horizontal, tablet): filas automáticas que crecen con el
-  // contenido, y el contenedor scrollea si no entra todo.
-  const gridRowsCss = esPantallaGrande ? 'repeat(2, minmax(110px, 1fr))' : undefined;
-  const gridAutoRowsCss = esPantallaGrande ? undefined : 'minmax(150px, auto)';
+  // --- TARJETAS: ahora vía Flexbox en vez de CSS Grid ---
+  // Motivo: el WebView de la Android TV (y el WebViewer de Kodular) usan un
+  // Chromium muy viejo que no soporta bien `display: grid` con
+  // `grid-template-rows: repeat(...)`. El resultado observado era que solo se
+  // pintaba la primera tarjeta y el resto del panel quedaba vacío. Flexbox con
+  // wrap tiene soporte mucho más amplio en WebViews antiguos y da el mismo
+  // resultado visual.
+  const gapPx = 8;
+  const anchoTarjeta = `calc(${100 / columnas}% - ${(gapPx * (columnas - 1)) / columnas}px)`;
+  // TV (pantalla grande): 2 filas fijas (ITEMS_POR_PAGINA / columnas), todo
+  // visible sin scroll. Pantallas chicas: alto fijo razonable, con scroll si
+  // no entra todo.
+  const filas = esPantallaGrande ? Math.max(1, Math.ceil(ITEMS_POR_PAGINA / columnas)) : null;
+  const altoTarjeta = esPantallaGrande ? `calc(${100 / filas}% - ${(gapPx * (filas - 1)) / filas}px)` : '150px';
 
   return (
     <div style={{
@@ -600,18 +604,23 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: gridColsCss, gridTemplateRows: gridRowsCss, gridAutoRows: gridAutoRowsCss, gap: '8px', flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
             {climaEnPantalla.map((item, i) => {
-              if (!item) return <div key={`empty-${i}`}></div>;
-              if (item.tipo === 'chiller') {
-                return <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />;
-              }
+              const contenido = !item
+                ? null
+                : item.tipo === 'chiller'
+                  ? <TarjetaChiller key={item.id || `chiller-${i}`} datos={item} />
+                  : (
+                    <TarjetaClima
+                      key={item.id || `sala-${i}`}
+                      datos={item}
+                      onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
+                    />
+                  );
               return (
-                <TarjetaClima
-                  key={item.id || `sala-${i}`}
-                  datos={item}
-                  onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
-                />
+                <div key={`clima-slot-${i}`} style={{ width: anchoTarjeta, height: altoTarjeta, boxSizing: 'border-box' }}>
+                  {contenido}
+                </div>
               );
             })}
           </div>
@@ -628,15 +637,19 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Energía
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: gridColsCss, gridTemplateRows: gridRowsCss, gridAutoRows: gridAutoRowsCss, gap: '8px', flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
             {energiaEnPantalla.map((ups, i) => {
-              if (!ups) return <div key={`empty-ups-${i}`}></div>;
-              return (
+              const contenido = !ups ? null : (
                 <TarjetaEnergia
                   key={ups.id || `ups-${i}`}
                   datos={ups}
                   onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
                 />
+              );
+              return (
+                <div key={`energia-slot-${i}`} style={{ width: anchoTarjeta, height: altoTarjeta, boxSizing: 'border-box' }}>
+                  {contenido}
+                </div>
               );
             })}
           </div>
