@@ -388,7 +388,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
-          {hayDatoKwf && <span style={{ fontSize: '7px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)} Op.</span>}
+          {hayDatoKwf && <span style={{ fontSize: '10px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)} Op.</span>}
         </button>
 
         <button
@@ -398,7 +398,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Carga TI</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#fb923c' }}>{fmt(datos.cargaTiKw)}</span>
           {datos.cargaTi !== undefined && datos.cargaTi !== null && (
-            <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#fed7aa' }}>{fmtPorcentaje(datos.cargaTi)}</span>
+            <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#fed7aa' }}>{fmtPorcentaje(datos.cargaTi)}</span>
           )}
         </button>
       </div>
@@ -615,8 +615,16 @@ const IcetelProgramaVista = () => {
   // altura propia del contenedor ni de `calc(%)`. Ver el comentario del hook
   // más arriba para el porqué (evita el bucle de retroalimentación que hacía
   // que las tarjetas se fueran encogiendo).
+  //
+  // En pantallas chicas (celular/tablet, sin rotación de páginas fija)
+  // devolvemos `null` a propósito: ahí la tarjeta debe crecer según su
+  // contenido (alto automático), porque forzarle una altura fija (como los
+  // 150px que había antes) hace que el texto se desborde de la caja cuando,
+  // con el ancho angosto de 2 columnas, el contenido necesita más alto del
+  // que esa caja fija le permite. La página ya tiene scroll habilitado, así
+  // que dejar que cada tarjeta mida lo que necesite es seguro.
   const calcularAltoTarjetaPx = (alturaDisponible) => {
-    if (!esPantallaGrande) return 150; // pantallas chicas: alto fijo, con scroll
+    if (!esPantallaGrande) return null; // pantallas chicas: alto automático
     if (!alturaDisponible || !filas) return 130; // valor de arranque mientras se mide
     const alto = (alturaDisponible - gapPx * (filas - 1)) / filas;
     return Math.max(70, Math.floor(alto));
@@ -698,7 +706,7 @@ const IcetelProgramaVista = () => {
                     />
                   );
               return (
-                <div key={`clima-slot-${i}`} style={{ width: anchoTarjeta, height: `${altoTarjetaClima}px`, boxSizing: 'border-box' }}>
+                <div key={`clima-slot-${i}`} style={{ width: anchoTarjeta, height: altoTarjetaClima ? `${altoTarjetaClima}px` : undefined, minHeight: altoTarjetaClima ? undefined : '110px', boxSizing: 'border-box' }}>
                   {contenido}
                 </div>
               );
@@ -727,7 +735,7 @@ const IcetelProgramaVista = () => {
                 />
               );
               return (
-                <div key={`energia-slot-${i}`} style={{ width: anchoTarjeta, height: `${altoTarjetaEnergia}px`, boxSizing: 'border-box' }}>
+                <div key={`energia-slot-${i}`} style={{ width: anchoTarjeta, height: altoTarjetaEnergia ? `${altoTarjetaEnergia}px` : undefined, minHeight: altoTarjetaEnergia ? undefined : '110px', boxSizing: 'border-box' }}>
                   {contenido}
                 </div>
               );
