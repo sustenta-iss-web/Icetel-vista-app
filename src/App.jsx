@@ -58,16 +58,18 @@ const fmtPorcentaje = (valor) => {
 };
 
 // --- HOOK: layout responsive ---
-// Se basa SOLO en el ancho de ventana (igual que los breakpoints sm/lg de Tailwind
-// del diseño original), no en la orientación. Así un celular en landscape (ancho
-// típico ~700-900px) no se confunde con una TV real (ancho >=1024px).
+// El modo "desktop/TV" (Clima y Energía lado a lado, grid 3x2) se activa por
+// ORIENTACIÓN (ancho > alto = landscape), no por un umbral de ancho fijo. Así
+// un celular acostado (aunque tenga solo ~740-900px de ancho) también imita el
+// layout de escritorio, igual que una TV real.
 const useResponsiveLayout = () => {
   const calcular = () => {
     if (typeof window === 'undefined') return { ancho: 1200, columnas: 3, esPantallaGrande: true };
     const ancho = window.innerWidth;
-    let columnas = 2;
-    if (ancho >= 640) columnas = 3; // tablet / celular horizontal / TV
-    const esPantallaGrande = ancho >= 1024; // TV o desktop: layout fijo sin scroll de página
+    const alto = window.innerHeight;
+    const esLandscape = ancho > alto;
+    const columnas = (esLandscape || ancho >= 640) ? 3 : 2;
+    const esPantallaGrande = esLandscape; // landscape = layout lado a lado tipo desktop/TV
     return { ancho, columnas, esPantallaGrande };
   };
   const [layout, setLayout] = useState(calcular);
@@ -298,7 +300,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
@@ -354,7 +356,7 @@ const TarjetaChiller = ({ datos }) => {
   const statusList = datos.statusCompresores || [];
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '50%' }}>{datos.equipo || 'Chiller'}</h2>
         <div style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', display: 'flex', gap: '2px' }}>
@@ -388,7 +390,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.equipo || 'UPS'}</h2>
         <span style={{ fontSize: '9px', color: '#94a3b8', backgroundColor: '#020617', padding: '1px 4px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
@@ -535,8 +537,8 @@ const IcetelProgramaVista = () => {
   // rotación automática de páginas). En cualquier pantalla más chica (celular
   // vertical u horizontal, tablet): filas automáticas que crecen con el
   // contenido, y el contenedor scrollea si no entra todo.
-  const gridRowsCss = esPantallaGrande ? 'repeat(2, 1fr)' : undefined;
-  const gridAutoRowsCss = esPantallaGrande ? undefined : '150px';
+  const gridRowsCss = esPantallaGrande ? 'repeat(2, minmax(110px, 1fr))' : undefined;
+  const gridAutoRowsCss = esPantallaGrande ? undefined : 'minmax(150px, auto)';
 
   return (
     <div style={{
