@@ -201,7 +201,7 @@ const ModalDetalle = ({ config, onClose }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(30, 41, 59, 0.8)', paddingBottom: '6px' }}>
                 <span style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{sala.nombre} - {eq.equipo}</span>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', backgroundColor: eq.val === 1 ? 'rgba(6, 78, 59, 0.5)' : eq.val === 0.5 ? 'rgba(120, 53, 15, 0.5)' : 'rgba(127, 29, 29, 0.5)', color: eq.val === 1 ? '#34d399' : eq.val === 0.5 ? '#fbbf24' : '#f87171' }}>
-                  {eq.val * 100}% Op.
+                  {eq.val * 100}%
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -391,7 +391,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
-          {hayDatoKwf && <span style={{ fontSize: '10px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)} Op.</span>}
+          {hayDatoKwf && <span style={{ fontSize: '10px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
         </button>
 
         <button
@@ -618,8 +618,8 @@ const IcetelProgramaVista = () => {
   // mantienen SIEMPRE por debajo de la separación entre las columnas de
   // Clima y Energía (16px en TV/landscape, 18px en pantallas chicas), para
   // que esa división principal siga siendo la más marcada visualmente.
-  const gapColumnas = 8; // separación horizontal entre tarjetas
-  const gapFilas = 12;   // separación vertical entre tarjetas (leve, un poco mayor que la horizontal)
+  const gapColumnas = 8;  // separación horizontal entre tarjetas
+  const gapFilas = 18;    // separación vertical entre tarjetas (más notoria, para que no se vean amontonadas)
   const anchoTarjeta = `calc(${100 / columnas}% - ${(gapColumnas * (columnas - 1)) / columnas}px)`;
   // TV (pantalla grande): 2 filas fijas (ITEMS_POR_PAGINA / columnas), todo
   // visible sin scroll. Pantallas chicas: alto fijo razonable, con scroll si
@@ -697,14 +697,13 @@ const IcetelProgramaVista = () => {
       <div style={{
         display: 'flex',
         flexDirection: esPantallaGrande ? 'row' : 'column',
-        gap: esPantallaGrande ? '16px' : '18px',
         flex: esPantallaGrande ? 1 : undefined,
         minHeight: esPantallaGrande ? 0 : undefined,
         width: '100%'
       }}>
 
         {/* COLUMNA CLIMA */}
-        <div style={{ flex: esPantallaGrande ? 1 : undefined, display: 'flex', flexDirection: 'column', minHeight: esPantallaGrande ? 0 : undefined }}>
+        <div style={{ flex: esPantallaGrande ? 1 : undefined, display: 'flex', flexDirection: 'column', minHeight: esPantallaGrande ? 0 : undefined, marginBottom: esPantallaGrande ? 0 : '18px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
@@ -737,11 +736,21 @@ const IcetelProgramaVista = () => {
           </div>
         </div>
 
-        {/* DIVISORIA: vertical en TV, horizontal apilado en pantallas chicas */}
+        {/* DIVISORIA: elemento de ancho/alto FIJO real (no margin) que por sí
+           mismo ocupa el espacio central entre Clima y Energía. Se usa un
+           tamaño fijo en vez de margin en las columnas vecinas para que la
+           separación no dependa de cómo cada motor de renderizado resuelva
+           flex-basis/margin en un elemento con flex:1 — un elemento con
+           ancho/alto propio es lo más básico y compatible que existe. */}
         <div style={esPantallaGrande
-          ? { width: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }
-          : { height: '2px', backgroundColor: '#1e293b', borderRadius: '2px', flexShrink: 0 }}
-        ></div>
+          ? { width: '24px', flexShrink: 0, display: 'flex', justifyContent: 'center' }
+          : { height: '26px', flexShrink: 0, display: 'flex', alignItems: 'center' }}
+        >
+          <div style={esPantallaGrande
+            ? { width: '2px', height: '100%', backgroundColor: '#1e293b', borderRadius: '2px' }
+            : { height: '2px', width: '100%', backgroundColor: '#1e293b', borderRadius: '2px' }}
+          ></div>
+        </div>
 
         {/* COLUMNA ENERGÍA */}
         <div style={{ flex: esPantallaGrande ? 1 : undefined, display: 'flex', flexDirection: 'column', minHeight: esPantallaGrande ? 0 : undefined }}>
