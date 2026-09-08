@@ -585,7 +585,7 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold mb-2 border-b-2 border-stone-700/80 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-stone-400 to-stone-200 drop-shadow-sm">
             Clima
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
             {climaEnPantalla.map((item, i) => {
               if (!item) {
                 return <div key={`empty-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;
@@ -613,7 +613,7 @@ const IcetelProgramaVista = () => {
           <h2 className="text-lg font-bold mb-2 border-b-2 border-amber-800/50 pb-1 uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-300 drop-shadow-sm">
             Energía
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-rows-2 gap-3 lg:flex-[7] min-h-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 grid-rows-2 gap-3 flex-1 min-h-0">
             {energiaEnPantalla.map((ups, i) => {
               if (!ups) {
                 return <div key={`empty-ups-${i}`} className="bg-transparent rounded-xl border border-transparent p-2.5 h-full w-full"></div>;

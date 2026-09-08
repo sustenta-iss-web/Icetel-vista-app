@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
-/* Ajuste de escala exacto para Smart TVs y móviles sin romper Tailwind */
-@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
-  body {
-    transform: scale(0.9);
-    transform-origin: top left;
-    width: 111.11%;
-    height: 111.11vh;
-    overflow-x: hidden;
+/* Ajuste específico para Smart TVs y Xbox (navegador de consola) */
+@media (hover: none) and (pointer: coarse) {
+  body, html {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
   }
 }
