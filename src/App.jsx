@@ -447,37 +447,33 @@ const IcetelProgramaVista = () => {
 
   const intervaloRef = useRef(null);
 
-    // --- CONTROL DINÁMICO DE VIEWPORT (ROTACIÓN) ---
+    // --- CONTROL DINÁMICO DE VIEWPORT Y ZOOM (ROTACIÓN) ---
   useEffect(() => {
     const ajustarPantalla = () => {
-      // Buscamos la etiqueta viewport en el documento
       let viewport = document.querySelector('meta[name="viewport"]');
-      
-      // Si por alguna razón no existe, la creamos
       if (!viewport) {
         viewport = document.createElement('meta');
         viewport.name = 'viewport';
         document.head.appendChild(viewport);
       }
 
-      // Verificamos si el teléfono está en horizontal
       if (window.matchMedia("(orientation: landscape)").matches) {
-        // Mentira de PC: Forzamos el ancho a 1200px para que Tailwind active las 3 columnas
-        viewport.setAttribute("content", "width=1200");
+        // Forzamos 1200px de ancho y aplicamos un zoom de alejamiento al 70% (0.7)
+        viewport.setAttribute("content", "width=1200, initial-scale=0.7, maximum-scale=1.0, user-scalable=no");
       } else {
-        // Celular vertical: Volvemos a la normalidad responsiva
+        // Celular vertical normal
         viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
       }
     };
 
-    // Ejecutar inmediatamente al cargar la app
+    // Ejecutar al cargar la app
     ajustarPantalla();
 
     // Quedarse escuchando cada vez que el usuario gire el teléfono
     window.addEventListener("resize", ajustarPantalla);
     
-    // Limpieza del evento cuando se cierre el componente
-    return () => window.removeEventListener("resize",ajustarPantalla);
+    // Limpieza del evento
+    return () => window.removeEventListener("resize", ajustarPantalla);
   }, []);
 
   const cargarDatos = useCallback(async () => {
