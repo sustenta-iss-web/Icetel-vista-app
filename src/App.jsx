@@ -93,6 +93,49 @@ const useResponsiveLayout = () => {
   return layout;
 };
 
+// --- HOOK: medir altura real de un contenedor en px ---
+// Se usa para el alto de las tarjetas de Clima/Energía en vez de porcentajes
+// CSS (`calc(100%/filas - gap)`). Motivo: cuando la altura del contenedor
+// viene de `flex: 1` (crecimiento flexible) y no de un valor fijo, muchos
+// WebViews antiguos (como el de esta Android TV) no resuelven bien el
+// porcentaje de altura de los hijos — quedan con altura mínima/auto y sobra
+// espacio vacío abajo. Midiendo el contenedor con JS y fijando la altura de
+// cada tarjeta en píxeles reales se evita ese problema por completo.
+const useAlturaMedida = () => {
+  const ref = useRef(null);
+  const [altura, setAltura] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let activo = true;
+    const medir = () => {
+      if (!activo || !ref.current) return;
+      const h = ref.current.clientHeight;
+      setAltura((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+    };
+    medir();
+    window.addEventListener('resize', medir);
+    window.addEventListener('orientationchange', medir);
+    let observer = null;
+    if (typeof window !== 'undefined' && typeof window.ResizeObserver !== 'undefined') {
+      observer = new window.ResizeObserver(medir);
+      observer.observe(el);
+    }
+    // Sondeo periódico de respaldo: algunos WebViews viejos no tienen
+    // ResizeObserver o no disparan resize/orientationchange de forma
+    // confiable. Es barato y garantiza que la altura termine siendo correcta.
+    const intervalo = setInterval(medir, 1000);
+    return () => {
+      activo = false;
+      window.removeEventListener('resize', medir);
+      window.removeEventListener('orientationchange', medir);
+      if (observer) observer.disconnect();
+      clearInterval(intervalo);
+    };
+  }, []);
+  return [ref, altura];
+};
+
 // --- MODAL DINÁMICO DE DETALLE ---
 const ModalDetalle = ({ config, onClose }) => {
   const { sala, metrica } = config;
@@ -206,7 +249,7 @@ const ModalDetalle = ({ config, onClose }) => {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
       <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '14px', width: '100%', maxWidth: '420px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid #1e293b' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#f8fafc', margin: 0 }}>{titulo}</h3>
@@ -229,7 +272,7 @@ const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
   });
 
   return (
-    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 50 }} onClick={onClose}>
       <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '14px', width: '100%', maxWidth: '800px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid #1e293b' }}>
           <div>
@@ -433,11 +476,20 @@ const IcetelProgramaVista = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
-  const [modalConfig, setModalConfig] = useState({ sala: null, metrica: null });
-  const [mostrarNovedades, setMostrarNovedades] = useState(false);
+  // --- MODAL ÚNICO ---
+  // Antes había dos estados independientes (uno para el detalle de KPI y otro
+  // para Novedades), lo que permitía tener ambos abiertos al mismo tiempo.
+  // Ahora es un solo estado: modalActivo = null | { tipo: 'detalle', sala, metrica } | { tipo: 'novedades' }.
+  // Abrir cualquier modal reemplaza automáticamente al que estuviera abierto.
+  const [modalActivo, setModalActivo] = useState(null);
+  const abrirDetalle = (sala, metrica) => setModalActivo({ tipo: 'detalle', sala, metrica });
+  const abrirNovedades = () => setModalActivo({ tipo: 'novedades' });
+  const cerrarModal = () => setModalActivo(null);
 
   const intervaloRef = useRef(null);
   const { columnas, esPantallaGrande } = useResponsiveLayout();
+  const [climaRef, alturaClima] = useAlturaMedida();
+  const [energiaRef, alturaEnergia] = useAlturaMedida();
 
   // --- VIEWPORT: siempre tamaño real, sin zoom artificial ---
   useEffect(() => {
@@ -529,20 +581,33 @@ const IcetelProgramaVista = () => {
   const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
   const energiaEnPantalla = datosEnergia.slice(indiceInicio, indiceFin);
 
-  // --- TARJETAS: ahora vía Flexbox en vez de CSS Grid ---
+  // --- TARJETAS: Flexbox en vez de CSS Grid ---
   // Motivo: el WebView de la Android TV (y el WebViewer de Kodular) usan un
   // Chromium muy viejo que no soporta bien `display: grid` con
-  // `grid-template-rows: repeat(...)`. El resultado observado era que solo se
-  // pintaba la primera tarjeta y el resto del panel quedaba vacío. Flexbox con
-  // wrap tiene soporte mucho más amplio en WebViews antiguos y da el mismo
-  // resultado visual.
+  // `grid-template-rows: repeat(...)`. Flexbox con wrap tiene soporte mucho
+  // más amplio en WebViews antiguos y da el mismo resultado visual.
   const gapPx = 8;
   const anchoTarjeta = `calc(${100 / columnas}% - ${(gapPx * (columnas - 1)) / columnas}px)`;
   // TV (pantalla grande): 2 filas fijas (ITEMS_POR_PAGINA / columnas), todo
   // visible sin scroll. Pantallas chicas: alto fijo razonable, con scroll si
   // no entra todo.
   const filas = esPantallaGrande ? Math.max(1, Math.ceil(ITEMS_POR_PAGINA / columnas)) : null;
-  const altoTarjeta = esPantallaGrande ? `calc(${100 / filas}% - ${(gapPx * (filas - 1)) / filas}px)` : '150px';
+
+  // El alto de cada tarjeta se calcula en PÍXELES REALES a partir de la
+  // altura medida del contenedor (useAlturaMedida), no con `calc(%)`. Esto
+  // evita el flexbug clásico donde un WebView viejo no resuelve bien un
+  // porcentaje de altura cuyo contenedor a su vez mide su altura por
+  // `flex: 1` — que era la causa de que las tarjetas (sobre todo los
+  // chillers) quedaran chicas/aplastadas con un montón de espacio vacío
+  // debajo, como se ve en la captura de la TV.
+  const calcularAltoTarjetaPx = (alturaContenedor) => {
+    if (!esPantallaGrande) return 150; // pantallas chicas: alto fijo, con scroll
+    if (!alturaContenedor || !filas) return 130; // valor de arranque mientras se mide
+    const alto = (alturaContenedor - gapPx * (filas - 1)) / filas;
+    return Math.max(70, Math.floor(alto));
+  };
+  const altoTarjetaClima = calcularAltoTarjetaPx(alturaClima);
+  const altoTarjetaEnergia = calcularAltoTarjetaPx(alturaEnergia);
 
   return (
     <div style={{
@@ -569,7 +634,7 @@ const IcetelProgramaVista = () => {
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button
-            onClick={() => setMostrarNovedades(true)}
+            onClick={abrirNovedades}
             style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 'bold', padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px' }}
           >
             Novedades ({novedades.length})
@@ -604,7 +669,7 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#cbd5e1', borderBottom: '2px solid #334155', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Clima
           </h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
+          <div ref={climaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
             {climaEnPantalla.map((item, i) => {
               const contenido = !item
                 ? null
@@ -614,11 +679,11 @@ const IcetelProgramaVista = () => {
                     <TarjetaClima
                       key={item.id || `sala-${i}`}
                       datos={item}
-                      onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
+                      onClickMetrica={abrirDetalle}
                     />
                   );
               return (
-                <div key={`clima-slot-${i}`} style={{ width: anchoTarjeta, height: altoTarjeta, boxSizing: 'border-box' }}>
+                <div key={`clima-slot-${i}`} style={{ width: anchoTarjeta, height: `${altoTarjetaClima}px`, boxSizing: 'border-box' }}>
                   {contenido}
                 </div>
               );
@@ -637,17 +702,17 @@ const IcetelProgramaVista = () => {
           <h2 style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px', color: '#fbbf24', borderBottom: '2px solid #92400e', paddingBottom: '4px', margin: '0 0 8px 0', flexShrink: 0 }}>
             Energía
           </h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
+          <div ref={energiaRef} style={{ display: 'flex', flexWrap: 'wrap', gap: `${gapPx}px`, flex: esPantallaGrande ? 1 : undefined, minHeight: esPantallaGrande ? 0 : undefined, alignContent: 'flex-start' }}>
             {energiaEnPantalla.map((ups, i) => {
               const contenido = !ups ? null : (
                 <TarjetaEnergia
                   key={ups.id || `ups-${i}`}
                   datos={ups}
-                  onClickMetrica={(sala, metrica) => setModalConfig({ sala, metrica })}
+                  onClickMetrica={abrirDetalle}
                 />
               );
               return (
-                <div key={`energia-slot-${i}`} style={{ width: anchoTarjeta, height: altoTarjeta, boxSizing: 'border-box' }}>
+                <div key={`energia-slot-${i}`} style={{ width: anchoTarjeta, height: `${altoTarjetaEnergia}px`, boxSizing: 'border-box' }}>
                   {contenido}
                 </div>
               );
@@ -657,8 +722,19 @@ const IcetelProgramaVista = () => {
 
       </div>
 
-      <ModalDetalle config={modalConfig} onClose={() => setModalConfig({ sala: null, metrica: null })} />
-      {mostrarNovedades && <ModalNovedades novedades={novedades} onClose={() => setMostrarNovedades(false)} columnaUnica={!esPantallaGrande && columnas < 3} />}
+      {modalActivo?.tipo === 'detalle' && (
+        <ModalDetalle
+          config={{ sala: modalActivo.sala, metrica: modalActivo.metrica }}
+          onClose={cerrarModal}
+        />
+      )}
+      {modalActivo?.tipo === 'novedades' && (
+        <ModalNovedades
+          novedades={novedades}
+          onClose={cerrarModal}
+          columnaUnica={!esPantallaGrande && columnas < 3}
+        />
+      )}
     </div>
   );
 };
