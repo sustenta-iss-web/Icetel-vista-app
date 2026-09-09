@@ -349,7 +349,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
 
   const pctKwf = datos.porcentajeOperativo;
   const hayDatoKwf = pctKwf !== undefined && pctKwf !== null;
-  const kwfCritico = hayDatoKwf && pctKwf < UMBRAL_KWF;
+  const kwfCritico = hayDatoKwf && pctKwf <= UMBRAL_KWF;
   const colorKwf = hayDatoKwf ? (kwfCritico ? COLOR_PREOCUPANTE : COLOR_KWF_OK) : null;
 
   const temp = datos.temperatura;
@@ -363,14 +363,19 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   // que baja (ancho = porcentajeKwf / 2), cediendo espacio al lado de Carga
   // TI. Con KWF en 0% el lado de KWF desaparece y la barra queda enteramente
   // del color de Carga TI. Sin dato de KWF se reparte 50/50 por defecto.
-  // El color del lado KWF respeta el mismo umbral crítico (<50%) que ya
+  // El color del lado KWF respeta el mismo umbral crítico (<=50%) que ya
   // tenía la tarjeta individual.
+  //
+  // TEXTO/CLICK SIEMPRE FIJO 50/50: el fondo animado vive en una capa
+  // absoluta separada (pointerEvents:'none') detrás de dos botones que
+  // SIEMPRE miden 50% cada uno. Así el "aplastado" es solo visual y el
+  // texto/área de click nunca se comprime ni se corta.
   const anchoKwfPct = hayDatoKwf ? Math.max(0, Math.min(100, pctKwf)) / 2 : 50;
   const anchoCargaTiPct = 100 - anchoKwfPct;
   const hayDatoCargaTi = datos.cargaTi !== undefined && datos.cargaTi !== null;
 
   return (
-    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: `2px solid ${kwfCritico ? COLOR_PREOCUPANTE : '#94a3b8'}`, transition: 'border-top-color 0.4s ease', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
@@ -402,17 +407,44 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         {/* Barra versus: ocupa el ancho completo de la fila inferior, con la
            misma altura que antes tenían los dos cuadros de KWF y Carga TI
            por separado (así no cambia el tamaño total de la tarjeta). */}
-        <div style={{ width: '100%', height: 'calc(50% - 3px)', display: 'flex', borderRadius: '8px', overflow: 'hidden', border: '1px solid #1e293b', minHeight: 0, boxSizing: 'border-box' }}>
+        <div style={{
+          width: '100%', height: 'calc(50% - 3px)', position: 'relative',
+          display: 'flex', borderRadius: '8px', overflow: 'hidden',
+          border: `1px solid ${kwfCritico ? hexA(COLOR_PREOCUPANTE, 0.7) : '#1e293b'}`,
+          transition: 'border-color 0.4s ease',
+          minHeight: 0, boxSizing: 'border-box'
+        }}>
+          {/* Capa de FONDO animada — solo visual, no recibe clicks */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', pointerEvents: 'none' }}>
+            <div style={{
+              width: `${anchoKwfPct}%`, height: '100%',
+              transition: 'width 0.6s ease, background-color 0.4s ease',
+              backgroundColor: colorKwf ? hexA(colorKwf, 0.22) : 'rgba(59, 7, 100, 0.35)'
+            }} />
+            <div style={{
+              width: `${anchoCargaTiPct}%`, height: '100%',
+              transition: 'width 0.6s ease',
+              backgroundColor: hexA(COLOR_CARGA_TI, 0.3)
+            }} />
+          </div>
+
+          {/* Lavado rojo que "expande" el crítico a toda la barra */}
+          {kwfCritico && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              backgroundColor: hexA(COLOR_PREOCUPANTE, 0.14),
+              pointerEvents: 'none', transition: 'background-color 0.4s ease'
+            }} />
+          )}
+
+          {/* Capa de TEXTO + CLICK — siempre 50/50 fijo, nunca se comprime */}
           <button
             onClick={() => onClickMetrica(datos, 'kwf')}
             style={{
-              width: `${anchoKwfPct}%`,
-              transition: 'width 0.6s ease, background-color 0.4s ease',
-              backgroundColor: colorKwf ? hexA(colorKwf, 0.22) : 'rgba(59, 7, 100, 0.35)',
-              border: 'none',
-              padding: '2px',
+              position: 'relative', zIndex: 1, width: '50%', background: 'transparent',
+              border: 'none', padding: '2px',
               display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-              cursor: 'pointer', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box'
+              cursor: 'pointer', minWidth: 0, boxSizing: 'border-box'
             }}
           >
             <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>KWF</span>
@@ -423,13 +455,10 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           <button
             onClick={() => onClickMetrica(datos, 'cargati')}
             style={{
-              width: `${anchoCargaTiPct}%`,
-              transition: 'width 0.6s ease',
-              backgroundColor: hexA(COLOR_CARGA_TI, 0.3),
-              border: 'none',
-              padding: '2px',
+              position: 'relative', zIndex: 1, width: '50%', background: 'transparent',
+              border: 'none', padding: '2px',
               display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-              cursor: 'pointer', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box'
+              cursor: 'pointer', minWidth: 0, boxSizing: 'border-box'
             }}
           >
             <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Carga TI</span>
