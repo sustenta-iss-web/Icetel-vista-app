@@ -10,6 +10,7 @@ const INTERVALO_PAGINA_MS = 10000;
 const COLOR_PREOCUPANTE = '#cb2330';
 const COLOR_KWF_OK = '#e3f565';
 const COLOR_ENERGIA_OK = '#32817c';
+const COLOR_CARGA_TI = '#c2410c'; // base del naranja que ya usaba la tarjeta de Carga TI
 const UMBRAL_KWF = 50;
 const UMBRAL_CARGA_UPS = 80;
 const UMBRAL_TEMP = 28;
@@ -355,6 +356,19 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const hayDatoTemp = temp !== undefined && temp !== null;
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
+  // --- BARRA "VERSUS" KWF vs CARGA TI ---
+  // Fusiona los antiguos cuadros de KWF y Carga TI en una sola barra
+  // dividida en dos colores. El lado de KWF ocupa la MITAD de la barra
+  // cuando KWF está al 100%, y se va achicando hacia la izquierda a medida
+  // que baja (ancho = porcentajeKwf / 2), cediendo espacio al lado de Carga
+  // TI. Con KWF en 0% el lado de KWF desaparece y la barra queda enteramente
+  // del color de Carga TI. Sin dato de KWF se reparte 50/50 por defecto.
+  // El color del lado KWF respeta el mismo umbral crítico (<50%) que ya
+  // tenía la tarjeta individual.
+  const anchoKwfPct = hayDatoKwf ? Math.max(0, Math.min(100, pctKwf)) / 2 : 50;
+  const anchoCargaTiPct = 100 - anchoKwfPct;
+  const hayDatoCargaTi = datos.cargaTi !== undefined && datos.cargaTi !== null;
+
   return (
     <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #94a3b8', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
@@ -385,25 +399,44 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#22d3ee' }}>{fmt(datos.humedad, '%')}</span>
         </button>
 
-        <button
-          onClick={() => onClickMetrica(datos, 'kwf')}
-          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', backgroundColor: colorKwf ? hexA(colorKwf, 0.18) : 'rgba(59, 7, 100, 0.3)', border: `1px solid ${colorKwf ? hexA(colorKwf, 0.55) : 'rgba(88, 28, 135, 0.5)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
-        >
-          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KWF</span>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorKwf || '#c084fc' }}>{fmt(datos.kw)}</span>
-          {hayDatoKwf && <span style={{ fontSize: '13px', fontWeight: 'bold', color: hexA(colorKwf, 0.85) }}>{fmtPorcentaje(pctKwf)}</span>}
-        </button>
+        {/* Barra versus: ocupa el ancho completo de la fila inferior, con la
+           misma altura que antes tenían los dos cuadros de KWF y Carga TI
+           por separado (así no cambia el tamaño total de la tarjeta). */}
+        <div style={{ width: '100%', height: 'calc(50% - 3px)', display: 'flex', borderRadius: '8px', overflow: 'hidden', border: '1px solid #1e293b', minHeight: 0, boxSizing: 'border-box' }}>
+          <button
+            onClick={() => onClickMetrica(datos, 'kwf')}
+            style={{
+              width: `${anchoKwfPct}%`,
+              transition: 'width 0.6s ease, background-color 0.4s ease',
+              backgroundColor: colorKwf ? hexA(colorKwf, 0.22) : 'rgba(59, 7, 100, 0.35)',
+              border: 'none',
+              padding: '2px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+              cursor: 'pointer', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box'
+            }}
+          >
+            <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>KWF</span>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: colorKwf || '#c084fc', whiteSpace: 'nowrap' }}>{fmt(datos.kw)}</span>
+            {hayDatoKwf && <span style={{ fontSize: '11px', fontWeight: 'bold', color: colorKwf ? hexA(colorKwf, 0.9) : '#c084fc', whiteSpace: 'nowrap' }}>{fmtPorcentaje(pctKwf)}</span>}
+          </button>
 
-        <button
-          onClick={() => onClickMetrica(datos, 'cargati')}
-          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', backgroundColor: 'rgba(124, 45, 18, 0.3)', border: '1px solid rgba(194, 65, 12, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
-        >
-          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Carga TI</span>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#fb923c' }}>{fmt(datos.cargaTiKw)}</span>
-          {datos.cargaTi !== undefined && datos.cargaTi !== null && (
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fed7aa' }}>{fmtPorcentaje(datos.cargaTi)}</span>
-          )}
-        </button>
+          <button
+            onClick={() => onClickMetrica(datos, 'cargati')}
+            style={{
+              width: `${anchoCargaTiPct}%`,
+              transition: 'width 0.6s ease',
+              backgroundColor: hexA(COLOR_CARGA_TI, 0.3),
+              border: 'none',
+              padding: '2px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+              cursor: 'pointer', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box'
+            }}
+          >
+            <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Carga TI</span>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fb923c', whiteSpace: 'nowrap' }}>{fmt(datos.cargaTiKw)}</span>
+            {hayDatoCargaTi && <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fed7aa', whiteSpace: 'nowrap' }}>{fmtPorcentaje(datos.cargaTi)}</span>}
+          </button>
+        </div>
       </div>
     </div>
   );
