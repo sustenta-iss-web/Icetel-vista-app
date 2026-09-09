@@ -334,7 +334,6 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          {/* AQUÍ ESTÁ EL CAMBIO: Se agregó <strong> con el color #fde047 para los números */}
           <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
             Max KWF: <strong style={{ color: '#fde047' }}>{fmt(datos.maxKwf)}</strong>
           </span>
@@ -349,10 +348,10 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
           className={tempCritica ? 'parpadeo-alerta' : ''}
-          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: tempCritica ? '#cb2330' : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? '#ff4d5e' : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
-          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T°</span>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? COLOR_PREOCUPANTE : '#38bdf8' }}>{fmt(temp, '°C')}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: tempCritica ? '#fff' : '#64748b', textTransform: 'uppercase' }}>T°</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? '#fff' : '#38bdf8' }}>{fmt(temp, '°C')}</span>
         </button>
 
         <button
@@ -366,7 +365,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         <div style={{
           width: '100%', height: 'calc(50% - 3px)', position: 'relative',
           display: 'flex', borderRadius: '8px', overflow: 'hidden',
-          border: `1px solid ${kwfCritico ? hexA(COLOR_PREOCUPANTE, 0.7) : '#1e293b'}`,
+          border: `1px solid ${kwfCritico ? '#ff4d5e' : '#1e293b'}`,
           transition: 'border-color 0.4s ease',
           minHeight: 0, boxSizing: 'border-box'
         }}>
@@ -389,7 +388,7 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
               className="parpadeo-alerta"
               style={{
                 position: 'absolute', inset: 0, borderRadius: '8px',
-                pointerEvents: 'none', transition: 'background-color 0.4s ease'
+                pointerEvents: 'none'
               }} 
             />
           )}
@@ -490,13 +489,13 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
           className={cargaCritica ? 'parpadeo-alerta' : ''}
           style={{
             width: 'calc(50% - 3px)',
-            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
-            border: `1px solid ${colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'}`,
+            backgroundColor: cargaCritica ? '#cb2330' : (colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)'),
+            border: `1px solid ${cargaCritica ? '#ff4d5e' : (colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)')}`,
             borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box'
           }}
         >
-          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>% Carga</span>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: colorCarga || '#34d399' }}>{fmtPorcentaje(pctCarga)}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: cargaCritica ? '#fff' : '#64748b', textTransform: 'uppercase' }}>% Carga</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: cargaCritica ? '#fff' : (colorCarga || '#34d399') }}>{fmtPorcentaje(pctCarga)}</span>
         </button>
       </div>
     </div>
@@ -667,16 +666,26 @@ const IcetelProgramaVista = () => {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* ANIMACIONES INYECTADAS */}
-      <style>
+            {/* ANIMACIONES INYECTADAS COMPATIBLES CON ANDROID VIEJO */}
+            <style>
         {`
           @keyframes parpadeoCritico {
-            0% { box-shadow: inset 0 0 0px rgba(203,35,48,0); background-color: rgba(203,35,48,0.1) !important; }
-            50% { box-shadow: inset 0 0 20px rgba(203,35,48,0.9); background-color: rgba(203,35,48,0.45) !important; }
-            100% { box-shadow: inset 0 0 0px rgba(203,35,48,0); background-color: rgba(203,35,48,0.1) !important; }
+            0% {
+              background-color: #cb2330 !important;
+              border-color: #ff4d5e !important;
+            }
+            50% {
+              background-color: #5a0f15 !important;
+              border-color: #8b1822 !important;
+            }
+            100% {
+              background-color: #cb2330 !important;
+              border-color: #ff4d5e !important;
+            }
           }
           .parpadeo-alerta {
-            animation: parpadeoCritico 1.2s ease-in-out infinite;
+            animation: parpadeoCritico 1s infinite;
+            -webkit-animation: parpadeoCritico 1s infinite;
           }
         `}
       </style>
