@@ -7,6 +7,7 @@ const INTERVALO_DATOS_MS = 15000;
 const JITTER_MAX_MS = 4000;
 const INTERVALO_PAGINA_MS = 10000;
 const FALLOS_CONSECUTIVOS_PARA_AVISAR = 3;
+const STORAGE_KEY = 'icetel_cache_datos_v1';
 
 // --- COLORES DE ESTADO (umbrales) ---
 const COLOR_PREOCUPANTE = '#cb2330';
@@ -508,11 +509,37 @@ const TarjetaEnergia = ({ datos, onClickMetrica, parpadeoOn }) => {
 
 // --- VISTA PRINCIPAL ---
 const IcetelProgramaVista = () => {
-  const [datosClima, setDatosClima] = useState([]);
-  const [datosEnergia, setDatosEnergia] = useState([]);
-  const [novedades, setNovedades] = useState([]);
+  // Inicializamos leyendo del localStorage del navegador si existe para que cargue AL INSTANTE (0 segundos)
+  const [datosClima, setDatosClima] = useState(() => {
+    try {
+      const guardado = localStorage.getItem(STORAGE_KEY + '_clima');
+      return guardado ? JSON.parse(guardado) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [datosEnergia, setDatosEnergia] = useState(() => {
+    try {
+      const guardado = localStorage.getItem(STORAGE_KEY + '_energia');
+      return guardado ? JSON.parse(guardado) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [novedades, setNovedades] = useState(() => {
+    try {
+      const guardado = localStorage.getItem(STORAGE_KEY + '_novedades');
+      return guardado ? JSON.parse(guardado) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
   const [paginaActual, setPaginaActual] = useState(0);
-  const [cargando, setCargando] = useState(true);
+  // Si ya tenemos datos guardados en el navegador, arrancamos diciendo que NO estamos cargando desde cero
+  const [cargando, setCargando] = useState(() => datosClima.length === 0);
   const [error, setError] = useState(false);
 
   // Estado para forzar el parpadeo nativo en navegadores antiguos
@@ -576,12 +603,25 @@ const IcetelProgramaVista = () => {
       const salasPanel1y2 = salasModificadas.slice(0, indiceInicioPanel3);
       const salasRestantes = salasModificadas.slice(indiceInicioPanel3);
       const climaCombinado = [...salasPanel1y2, ...chillers, ...salasRestantes];
+      const listaEnergia = json.energia || json.ups || [];
+      const listaNovedades = json.novedades || [];
 
+      // Actualizamos estado
       setDatosClima(climaCombinado);
-      setDatosEnergia(json.energia || json.ups || []);
-      setNovedades(json.novedades || []);
+      setDatosEnergia(listaEnergia);
+      setNovedades(listaNovedades);
       fallosSeguidosRef.current = 0;
       setError(false);
+
+      // GUARDAMOS EN LOCALSTORAGE DEL NAVEGADOR PARA RECUPERAR AL INSTANTE EN EL FUTURO
+      try {
+        localStorage.setItem(STORAGE_KEY + '_clima', JSON.stringify(climaCombinado));
+        localStorage.setItem(STORAGE_KEY + '_energia', JSON.stringify(listaEnergia));
+        localStorage.setItem(STORAGE_KEY + '_novedades', JSON.stringify(listaNovedades));
+      } catch (e) {
+        // Ignorar si el almacenamiento local está desactivado o lleno
+      }
+
     } catch (err) {
       fallosSeguidosRef.current += 1;
       console.error(`Fallo al cargar datos (intento seguido #${fallosSeguidosRef.current}):`, err.message);
