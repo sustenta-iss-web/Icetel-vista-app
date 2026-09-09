@@ -313,7 +313,7 @@ const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
 };
 
 // --- TARJETA CLIMA ---
-const TarjetaClima = ({ datos, onClickMetrica }) => {
+const TarjetaClima = ({ datos, onClickMetrica, parpadeoOn }) => {
   if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
   const pctKwf = datos.porcentajeOperativo;
@@ -328,6 +328,9 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const anchoKwfPct = hayDatoKwf ? Math.max(0, Math.min(100, pctKwf)) / 2 : 50;
   const anchoCargaTiPct = 100 - anchoKwfPct;
   const hayDatoCargaTi = datos.cargaTi !== undefined && datos.cargaTi !== null;
+
+  const claseTemp = tempCritica && parpadeoOn ? 'efecto-baliza' : '';
+  const claseKwf = kwfCritico && parpadeoOn ? 'efecto-baliza' : '';
 
   return (
     <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: `2px solid ${kwfCritico ? COLOR_PREOCUPANTE : '#94a3b8'}`, transition: 'border-top-color 0.4s ease', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
@@ -347,8 +350,8 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
         {/* TEMPERATURA */}
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
-          className={tempCritica ? 'parpadeo-alerta' : ''}
-          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: tempCritica ? '#cb2330' : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? '#ff4d5e' : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
+          className={claseTemp}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: tempCritica && !parpadeoOn ? '#cb2330' : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? '#ff4d5e' : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: tempCritica ? '#fff' : '#64748b', textTransform: 'uppercase' }}>T°</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? '#fff' : '#38bdf8' }}>{fmt(temp, '°C')}</span>
@@ -382,10 +385,9 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
             }} />
           </div>
 
-          {/* CAPA DE ALERTA PARA KWF/CARGA TI */}
           {kwfCritico && (
             <div 
-              className="parpadeo-alerta"
+              className={claseKwf}
               style={{
                 position: 'absolute', inset: 0, borderRadius: '8px',
                 pointerEvents: 'none'
@@ -457,13 +459,15 @@ const TarjetaChiller = ({ datos }) => {
 };
 
 // --- TARJETA ENERGÍA ---
-const TarjetaEnergia = ({ datos, onClickMetrica }) => {
+const TarjetaEnergia = ({ datos, onClickMetrica, parpadeoOn }) => {
   if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
   const pctCarga = datos.porcentajeCarga;
   const hayDatoCarga = pctCarga !== undefined && pctCarga !== null;
   const cargaCritica = hayDatoCarga && pctCarga >= UMBRAL_CARGA_UPS;
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
+
+  const claseUps = cargaCritica && parpadeoOn ? 'efecto-baliza' : '';
 
   return (
     <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
@@ -486,10 +490,10 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
         {/* % CARGA UPS */}
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          className={cargaCritica ? 'parpadeo-alerta' : ''}
+          className={claseUps}
           style={{
             width: 'calc(50% - 3px)',
-            backgroundColor: cargaCritica ? '#cb2330' : (colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)'),
+            backgroundColor: cargaCritica && !parpadeoOn ? '#cb2330' : (colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)'),
             border: `1px solid ${cargaCritica ? '#ff4d5e' : (colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)')}`,
             borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box'
           }}
@@ -510,6 +514,16 @@ const IcetelProgramaVista = () => {
   const [paginaActual, setPaginaActual] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
+
+  // Estado para forzar el parpadeo nativo en navegadores antiguos
+  const [parpadeoOn, setParpadeoOn] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setParpadeoOn((prev) => !prev);
+    }, 800);
+    return () => clearInterval(timer);
+  }, []);
 
   const [modalActivo, setModalActivo] = useState(null);
   const abrirDetalle = (sala, metrica) => setModalActivo({ tipo: 'detalle', sala, metrica });
@@ -666,26 +680,12 @@ const IcetelProgramaVista = () => {
       display: 'flex',
       flexDirection: 'column'
     }}>
-            {/* ANIMACIONES INYECTADAS COMPATIBLES CON ANDROID VIEJO */}
-            <style>
+      {/* ESTILO COMPATIBLE PARA NAVEGADORES ANTIGUOS */}
+      <style>
         {`
-          @keyframes parpadeoCritico {
-            0% {
-              background-color: #cb2330 !important;
-              border-color: #ff4d5e !important;
-            }
-            50% {
-              background-color: #5a0f15 !important;
-              border-color: #8b1822 !important;
-            }
-            100% {
-              background-color: #cb2330 !important;
-              border-color: #ff4d5e !important;
-            }
-          }
-          .parpadeo-alerta {
-            animation: parpadeoCritico 1s infinite;
-            -webkit-animation: parpadeoCritico 1s infinite;
+          .efecto-baliza {
+            background-color: #cb2330 !important;
+            border-color: #ff4d5e !important;
           }
         `}
       </style>
@@ -741,6 +741,7 @@ const IcetelProgramaVista = () => {
                       key={item.id || `sala-${i}`}
                       datos={item}
                       onClickMetrica={abrirDetalle}
+                      parpadeoOn={parpadeoOn}
                     />
                   );
               return (
@@ -776,6 +777,7 @@ const IcetelProgramaVista = () => {
                   key={ups.id || `ups-${i}`}
                   datos={ups}
                   onClickMetrica={abrirDetalle}
+                  parpadeoOn={parpadeoOn}
                 />
               );
               return (
