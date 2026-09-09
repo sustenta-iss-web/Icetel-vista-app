@@ -314,7 +314,11 @@ const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
 };
 
 // --- TARJETA CLIMA ---
-const TarjetaClima = ({ datos, onClickMetrica, parpadeoOn }) => {
+// NOTA (fix parpadeo): ya no recibe `parpadeoOn`. El encendido/apagado del
+// rojo lo decide únicamente la clase CSS `.efecto-baliza` (animación por
+// @keyframes), y el style inline deja de tener un color condicionado al
+// mismo estado crítico -> ya no compiten dos mecanismos por el mismo color.
+const TarjetaClima = ({ datos, onClickMetrica }) => {
   if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
   const pctKwf = datos.porcentajeOperativo;
@@ -330,8 +334,10 @@ const TarjetaClima = ({ datos, onClickMetrica, parpadeoOn }) => {
   const anchoCargaTiPct = 100 - anchoKwfPct;
   const hayDatoCargaTi = datos.cargaTi !== undefined && datos.cargaTi !== null;
 
-  const claseTemp = tempCritica && parpadeoOn ? 'efecto-baliza' : '';
-  const claseKwf = kwfCritico && parpadeoOn ? 'efecto-baliza' : '';
+  // Antes: `tempCritica && parpadeoOn` (dependía de un setInterval de JS).
+  // Ahora: solo depende de si el valor es crítico; el parpadeo lo hace el CSS.
+  const claseTemp = tempCritica ? 'efecto-baliza' : '';
+  const claseKwf = kwfCritico ? 'efecto-baliza' : '';
 
   return (
     <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: `2px solid ${kwfCritico ? COLOR_PREOCUPANTE : '#94a3b8'}`, transition: 'border-top-color 0.4s ease', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
@@ -348,11 +354,12 @@ const TarjetaClima = ({ datos, onClickMetrica, parpadeoOn }) => {
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minHeight: 0, marginTop: '6px' }}>
-        {/* TEMPERATURA */}
+        {/* TEMPERATURA - el fondo/borde base es siempre el mismo (no crítico);
+            si es crítico, la clase .efecto-baliza se encarga de parpadear a rojo. */}
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
           className={claseTemp}
-          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: tempCritica && !parpadeoOn ? '#cb2330' : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? '#ff4d5e' : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
+          style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: 'rgba(30, 58, 138, 0.3)', border: '1px solid rgba(30, 58, 138, 0.6)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: tempCritica ? '#fff' : '#64748b', textTransform: 'uppercase' }}>T°</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: tempCritica ? '#fff' : '#38bdf8' }}>{fmt(temp, '°C')}</span>
@@ -460,7 +467,8 @@ const TarjetaChiller = ({ datos }) => {
 };
 
 // --- TARJETA ENERGÍA ---
-const TarjetaEnergia = ({ datos, onClickMetrica, parpadeoOn }) => {
+// NOTA (fix parpadeo): igual que en TarjetaClima, ya no recibe `parpadeoOn`.
+const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
   const pctCarga = datos.porcentajeCarga;
@@ -468,7 +476,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica, parpadeoOn }) => {
   const cargaCritica = hayDatoCarga && pctCarga >= UMBRAL_CARGA_UPS;
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
 
-  const claseUps = cargaCritica && parpadeoOn ? 'efecto-baliza' : '';
+  const claseUps = cargaCritica ? 'efecto-baliza' : '';
 
   return (
     <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', borderTop: '2px solid #f59e0b', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', minHeight: 0, boxSizing: 'border-box' }}>
@@ -488,14 +496,15 @@ const TarjetaEnergia = ({ datos, onClickMetrica, parpadeoOn }) => {
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#818cf8' }}>{fmt(datos.kvaTermino)}</span>
         </button>
 
-        {/* % CARGA UPS */}
+        {/* % CARGA UPS - fondo/borde base siempre "no crítico"; el parpadeo
+            a rojo lo hace la clase .efecto-baliza cuando corresponde. */}
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           className={claseUps}
           style={{
             width: 'calc(50% - 3px)',
-            backgroundColor: cargaCritica && !parpadeoOn ? '#cb2330' : (colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)'),
-            border: `1px solid ${cargaCritica ? '#ff4d5e' : (colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)')}`,
+            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
+            border: `1px solid ${colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'}`,
             borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box'
           }}
         >
@@ -542,15 +551,11 @@ const IcetelProgramaVista = () => {
   const [cargando, setCargando] = useState(() => datosClima.length === 0);
   const [error, setError] = useState(false);
 
-  // Estado para forzar el parpadeo nativo en navegadores antiguos
-  const [parpadeoOn, setParpadeoOn] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setParpadeoOn((prev) => !prev);
-    }, 800);
-    return () => clearInterval(timer);
-  }, []);
+  // FIX PARPADEO: se elimina el estado `parpadeoOn` y su setInterval de
+  // 800ms. Ya no hace falta: el parpadeo ahora es una animación CSS pura
+  // (@keyframes) aplicada vía className en las tarjetas, así que no hay
+  // re-render de todo el árbol cada 800ms (más liviano en TVs viejas) y no
+  // hay dos mecanismos (JS + CSS) peleando por el mismo color.
 
   const [modalActivo, setModalActivo] = useState(null);
   const abrirDetalle = (sala, metrica) => setModalActivo({ tipo: 'detalle', sala, metrica });
@@ -720,12 +725,18 @@ const IcetelProgramaVista = () => {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* ESTILO COMPATIBLE PARA NAVEGADORES ANTIGUOS */}
+      {/* FIX PARPADEO: animación CSS pura. Corre en el compositor del
+          navegador, no depende del hilo principal de JS ni de setInterval,
+          así que no la throttlea el navegador en TVs/Android viejos cuando
+          la pestaña está en segundo plano o sin interacción. */}
       <style>
         {`
+          @keyframes parpadeo-baliza {
+            0%, 100% { background-color: ${COLOR_PREOCUPANTE}; border-color: #ff4d5e; }
+            50% { background-color: transparent; border-color: inherit; }
+          }
           .efecto-baliza {
-            background-color: #cb2330 !important;
-            border-color: #ff4d5e !important;
+            animation: parpadeo-baliza 1.6s infinite;
           }
         `}
       </style>
@@ -781,7 +792,6 @@ const IcetelProgramaVista = () => {
                       key={item.id || `sala-${i}`}
                       datos={item}
                       onClickMetrica={abrirDetalle}
-                      parpadeoOn={parpadeoOn}
                     />
                   );
               return (
@@ -817,7 +827,6 @@ const IcetelProgramaVista = () => {
                   key={ups.id || `ups-${i}`}
                   datos={ups}
                   onClickMetrica={abrirDetalle}
-                  parpadeoOn={parpadeoOn}
                 />
               );
               return (
