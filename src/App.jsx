@@ -3,28 +3,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 // --- CONFIGURACIÓN ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVRISt9dGOt0lXWimGVCkH2jLmWKHL1h-CLNEBymE6Q9gp_WOeJzTTUh6cKjqynBms/exec';
 const ITEMS_POR_PAGINA = 6;
-// CAMBIO: INTERVALO_DATOS_MS ahora es la base; cada dispositivo le suma un
-// "jitter" (retraso aleatorio) distinto en cada ciclo (ver JITTER_MAX_MS más
-// abajo). Motivo: si 10 pantallas arrancan casi al mismo tiempo y todas usan
-// exactamente el mismo intervalo fijo, tienden a sincronizarse y terminan
-// pidiendo datos al backend en el mismo instante una y otra vez ("thundering
-// herd"), lo cual es justamente lo que puede saturar el Apps Script y hacer
-// que devuelva la página de error HTML en vez de JSON. Con jitter, cada
-// pantalla pide en un momento levemente distinto.
 const INTERVALO_DATOS_MS = 15000;
 const JITTER_MAX_MS = 4000;
 const INTERVALO_PAGINA_MS = 10000;
-// Cuántos fallos de red/parseo seguidos hay que acumular antes de mostrarle
-// algo al operador. Un fallo aislado (por ejemplo, la colisión ocasional en
-// el backend) es normal y se resuelve solo en el siguiente ciclo: no vale la
-// pena alarmar por eso. Ver removerIndicadorDeError más abajo.
 const FALLOS_CONSECUTIVOS_PARA_AVISAR = 3;
 
 // --- COLORES DE ESTADO (umbrales) ---
 const COLOR_PREOCUPANTE = '#cb2330';
 const COLOR_KWF_OK = '#e3f565';
 const COLOR_ENERGIA_OK = '#32817c';
-const COLOR_CARGA_TI = '#c2410c'; // base del naranja que ya usaba la tarjeta de Carga TI
+const COLOR_CARGA_TI = '#c2410c'; 
 const UMBRAL_KWF = 50;
 const UMBRAL_CARGA_UPS = 80;
 const UMBRAL_TEMP = 28;
@@ -72,11 +60,7 @@ const fmtPorcentaje = (valor) => {
   }
 };
 
-// --- HOOK: layout responsive ---
-// El modo "desktop/TV" (Clima y Energía lado a lado) se activa por
-// ORIENTACIÓN (ancho > alto = landscape), no por un umbral de ancho fijo. Así
-// un celular acostado (aunque tenga solo ~740-900px de ancho) también imita el
-// layout de escritorio, igual que una TV real.
+// --- HOOKS ---
 const useResponsiveLayout = () => {
   const calcular = () => {
     if (typeof window === 'undefined') return { ancho: 1200, columnas: 3, esPantallaGrande: true };
@@ -84,15 +68,12 @@ const useResponsiveLayout = () => {
     const alto = window.innerHeight;
     const esLandscape = ancho > alto;
     const columnas = (esLandscape || ancho >= 640) ? 3 : 2;
-    const esPantallaGrande = esLandscape; // landscape = layout lado a lado tipo desktop/TV
+    const esPantallaGrande = esLandscape; 
     return { ancho, columnas, esPantallaGrande };
   };
   const [layout, setLayout] = useState(calcular);
   useEffect(() => {
     const onResize = () => setLayout(calcular());
-    // En navegadores viejos (TV/celular) el ancho a veces se lee ANTES de que
-    // termine la rotación física de pantalla. Se vuelve a medir con un pequeño
-    // delay tras el evento de orientación para evitar quedarse con el valor viejo.
     const onOrientationChange = () => {
       onResize();
       setTimeout(onResize, 150);
@@ -108,25 +89,6 @@ const useResponsiveLayout = () => {
   return layout;
 };
 
-// --- HOOK: calcular el alto DISPONIBLE para un contenedor, en px ---
-// Se usa para el alto de las tarjetas de Clima/Energía en vez de porcentajes
-// CSS o de `flex: 1`. Motivo: en este WebView viejo `flex-grow` no calcula
-// bien el alto disponible en columnas anidadas — el contenedor de tarjetas
-// quedaba con altura basada en su propio contenido en vez de crecer para
-// llenar el espacio libre.
-//
-// Un primer intento midió `clientHeight` del propio contenedor y usó ese
-// valor para fijarle una altura a sus tarjetas. Eso creó un bucle de
-// retroalimentación: al fijar una altura, el contenedor cambiaba de tamaño,
-// lo que disparaba una nueva medición con un valor distinto (más chico), que
-// volvía a fijar una altura menor, y así en bucle — por eso las tarjetas
-// empezaban ocupando media pantalla y se iban encogiendo.
-//
-// La solución es medir algo que NO dependa de la altura que le vamos a
-// asignar al contenedor: su posición `top` real en la pantalla (que solo
-// depende de lo que hay ARRIBA, no de su propio alto) y restarla a la altura
-// de la ventana. Ese resultado nunca se retroalimenta con nuestra propia
-// asignación de altura.
 const useAlturaDisponible = (margenInferior) => {
   const ref = useRef(null);
   const [altura, setAltura] = useState(0);
@@ -142,16 +104,10 @@ const useAlturaDisponible = (margenInferior) => {
     window.addEventListener('resize', medir);
     window.addEventListener('orientationchange', medir);
     let observer = null;
-    // Observamos el documento completo (viewport), NUNCA el propio
-    // contenedor: observar el propio contenedor es lo que causaba el bucle
-    // de retroalimentación descrito arriba.
     if (typeof window !== 'undefined' && typeof window.ResizeObserver !== 'undefined') {
       observer = new window.ResizeObserver(medir);
       observer.observe(document.documentElement);
     }
-    // Sondeo periódico de respaldo: algunos WebViews viejos no tienen
-    // ResizeObserver o no disparan resize/orientationchange de forma
-    // confiable. Es barato y garantiza que la altura termine siendo correcta.
     const intervalo = setInterval(medir, 1000);
     return () => {
       activo = false;
@@ -164,7 +120,7 @@ const useAlturaDisponible = (margenInferior) => {
   return [ref, altura];
 };
 
-// --- MODAL DINÁMICO DE DETALLE ---
+// --- MODALES ---
 const ModalDetalle = ({ config, onClose }) => {
   const { sala, metrica } = config;
   if (!sala || !metrica) return null;
@@ -289,7 +245,6 @@ const ModalDetalle = ({ config, onClose }) => {
   );
 };
 
-// --- MODAL DE NOVEDADES ---
 const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
   if (!novedades) return null;
   const novClima = novedades.filter(n => (n.area || '').toLowerCase().includes('clima'));
@@ -357,7 +312,7 @@ const ModalNovedades = ({ novedades, onClose, columnaUnica }) => {
   );
 };
 
-// --- TARJETA CLIMA (altura flexible, ya no fija en 142px) ---
+// --- TARJETA CLIMA ---
 const TarjetaClima = ({ datos, onClickMetrica }) => {
   if (!datos) return <div style={{ height: '100%', width: '100%' }}></div>;
 
@@ -370,20 +325,6 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const hayDatoTemp = temp !== undefined && temp !== null;
   const tempCritica = hayDatoTemp && temp >= UMBRAL_TEMP;
 
-  // --- BARRA "VERSUS" KWF vs CARGA TI ---
-  // Fusiona los antiguos cuadros de KWF y Carga TI en una sola barra
-  // dividida en dos colores. El lado de KWF ocupa la MITAD de la barra
-  // cuando KWF está al 100%, y se va achicando hacia la izquierda a medida
-  // que baja (ancho = porcentajeKwf / 2), cediendo espacio al lado de Carga
-  // TI. Con KWF en 0% el lado de KWF desaparece y la barra queda enteramente
-  // del color de Carga TI. Sin dato de KWF se reparte 50/50 por defecto.
-  // El color del lado KWF respeta el mismo umbral crítico (<=50%) que ya
-  // tenía la tarjeta individual.
-  //
-  // TEXTO/CLICK SIEMPRE FIJO 50/50: el fondo animado vive en una capa
-  // absoluta separada (pointerEvents:'none') detrás de dos botones que
-  // SIEMPRE miden 50% cada uno. Así el "aplastado" es solo visual y el
-  // texto/área de click nunca se comprime ni se corta.
   const anchoKwfPct = hayDatoKwf ? Math.max(0, Math.min(100, pctKwf)) / 2 : 50;
   const anchoCargaTiPct = 100 - anchoKwfPct;
   const hayDatoCargaTi = datos.cargaTi !== undefined && datos.cargaTi !== null;
@@ -393,14 +334,21 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '4px', flexShrink: 0 }}>
         <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: '#f8fafc', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{datos.nombre || 'Sala'}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max KWF: {fmt(datos.maxKwf)}</span>
-          <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>Max TI: {fmt(datos.maxTi)}</span>
+          {/* AQUÍ ESTÁ EL CAMBIO: Se agregó <strong> con el color #fde047 para los números */}
+          <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
+            Max KWF: <strong style={{ color: '#fde047' }}>{fmt(datos.maxKwf)}</strong>
+          </span>
+          <span style={{ fontSize: '12px', color: '#94a3b8', backgroundColor: '#020617', padding: '2px 6px', borderRadius: '4px', border: '1px solid #1e293b', whiteSpace: 'nowrap' }}>
+            Max TI: <strong style={{ color: '#fde047' }}>{fmt(datos.maxTi)}</strong>
+          </span>
         </div>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minHeight: 0, marginTop: '6px' }}>
+        {/* TEMPERATURA */}
         <button
           onClick={() => onClickMetrica(datos, 'temperatura')}
+          className={tempCritica ? 'parpadeo-alerta' : ''}
           style={{ width: 'calc(50% - 3px)', height: 'calc(50% - 3px)', marginRight: '6px', marginBottom: '6px', backgroundColor: tempCritica ? hexA(COLOR_PREOCUPANTE, 0.2) : 'rgba(30, 58, 138, 0.3)', border: `1px solid ${tempCritica ? hexA(COLOR_PREOCUPANTE, 0.6) : 'rgba(30, 58, 138, 0.6)'}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>T°</span>
@@ -435,12 +383,15 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
             }} />
           </div>
 
+          {/* CAPA DE ALERTA PARA KWF/CARGA TI */}
           {kwfCritico && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              backgroundColor: hexA(COLOR_PREOCUPANTE, 0.14),
-              pointerEvents: 'none', transition: 'background-color 0.4s ease'
-            }} />
+            <div 
+              className="parpadeo-alerta"
+              style={{
+                position: 'absolute', inset: 0, borderRadius: '8px',
+                pointerEvents: 'none', transition: 'background-color 0.4s ease'
+              }} 
+            />
           )}
 
           <button
@@ -533,8 +484,10 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#818cf8' }}>{fmt(datos.kvaTermino)}</span>
         </button>
 
+        {/* % CARGA UPS */}
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
+          className={cargaCritica ? 'parpadeo-alerta' : ''}
           style={{
             width: 'calc(50% - 3px)',
             backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
@@ -557,13 +510,6 @@ const IcetelProgramaVista = () => {
   const [novedades, setNovedades] = useState([]);
   const [paginaActual, setPaginaActual] = useState(0);
   const [cargando, setCargando] = useState(true);
-  // CAMBIO: `error` ya no guarda el texto crudo del error (ese era el que se
-  // mostraba en el cartel rojo "Error: Unexpected token '<' ..."). Ahora solo
-  // guarda un booleano interno para decidir el color del botón "EN LÍNEA",
-  // y solo se activa tras varios fallos SEGUIDOS (ver fallosSeguidosRef), no
-  // con el primer error aislado. El texto crudo del error se manda a
-  // console.error para quien necesite depurar desde el navegador, pero nunca
-  // se le muestra al operador en pantalla.
   const [error, setError] = useState(false);
 
   const [modalActivo, setModalActivo] = useState(null);
@@ -572,9 +518,6 @@ const IcetelProgramaVista = () => {
   const cerrarModal = () => setModalActivo(null);
 
   const intervaloRef = useRef(null);
-  // CAMBIO: ya no usamos setInterval de intervalo fijo para pedir datos;
-  // usamos un setTimeout que se reprograma solo después de que cada
-  // request termina, y con jitter aleatorio (ver programarSiguienteCarga).
   const timeoutDatosRef = useRef(null);
   const fallosSeguidosRef = useRef(0);
   const { columnas, esPantallaGrande } = useResponsiveLayout();
@@ -592,19 +535,6 @@ const IcetelProgramaVista = () => {
     viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
   }, []);
 
-  // CAMBIO: cargarDatos ahora es defensivo con la respuesta del backend.
-  // Antes hacía `await res.json()` directo, y si el backend devolvía HTML de
-  // error (por la colisión de varios equipos a la vez), `res.json()`
-  // explotaba con "Unexpected token '<'" y ese texto crudo terminaba en el
-  // cartel rojo de la pantalla. Ahora:
-  //   1. Se lee la respuesta como texto primero.
-  //   2. Se intenta parsear ese texto como JSON en un try/catch aparte.
-  //   3. Si algo falla (red caída, HTML de error, JSON incompleto), se
-  //      cuenta como "fallo" pero NO se borran los datos que ya estaban en
-  //      pantalla (se sigue mostrando el último dato bueno) y no se le
-  //      muestra al operador el texto crudo del error.
-  //   4. Solo si se acumulan FALLOS_CONSECUTIVOS_PARA_AVISAR fallos seguidos
-  //      se pone el botón en modo "alerta" (sin mostrar el detalle técnico).
   const cargarDatos = useCallback(async () => {
     try {
       const res = await fetch(GAS_URL);
@@ -614,9 +544,7 @@ const IcetelProgramaVista = () => {
       try {
         json = JSON.parse(texto);
       } catch (errorParseo) {
-        // Esto es lo que antes rompía todo: el backend devolvió algo que no
-        // es JSON (típicamente HTML de error por ejecuciones simultáneas).
-        console.error('Respuesta no era JSON válido (probable colisión en el backend):', texto.slice(0, 200));
+        console.error('Respuesta no era JSON válido:', texto.slice(0, 200));
         throw new Error('Respuesta no válida del servidor');
       }
 
@@ -644,9 +572,6 @@ const IcetelProgramaVista = () => {
     } catch (err) {
       fallosSeguidosRef.current += 1;
       console.error(`Fallo al cargar datos (intento seguido #${fallosSeguidosRef.current}):`, err.message);
-      // Solo se muestra como error tras varios fallos seguidos: un fallo
-      // aislado por una colisión momentánea en el backend se resuelve solo
-      // en el siguiente ciclo y no vale la pena alarmar al operador por eso.
       if (fallosSeguidosRef.current >= FALLOS_CONSECUTIVOS_PARA_AVISAR) {
         setError(true);
       }
@@ -655,9 +580,6 @@ const IcetelProgramaVista = () => {
     }
   }, []);
 
-  // CAMBIO: reemplaza el setInterval fijo por un ciclo de setTimeout con
-  // jitter aleatorio en cada vuelta, para que este dispositivo no pida datos
-  // exactamente en el mismo instante que las demás pantallas conectadas.
   useEffect(() => {
     let activo = true;
     const ciclo = async () => {
@@ -745,6 +667,19 @@ const IcetelProgramaVista = () => {
       display: 'flex',
       flexDirection: 'column'
     }}>
+      {/* ANIMACIONES INYECTADAS */}
+      <style>
+        {`
+          @keyframes parpadeoCritico {
+            0% { box-shadow: inset 0 0 0px rgba(203,35,48,0); background-color: rgba(203,35,48,0.1) !important; }
+            50% { box-shadow: inset 0 0 20px rgba(203,35,48,0.9); background-color: rgba(203,35,48,0.45) !important; }
+            100% { box-shadow: inset 0 0 0px rgba(203,35,48,0); background-color: rgba(203,35,48,0.1) !important; }
+          }
+          .parpadeo-alerta {
+            animation: parpadeoCritico 1.2s ease-in-out infinite;
+          }
+        `}
+      </style>
 
       {/* HEADER */}
       <div style={{ display: 'flex', flexDirection: esPantallaGrande ? 'row' : 'column', justifyContent: 'space-between', alignItems: esPantallaGrande ? 'center' : 'flex-start', marginBottom: '10px', borderBottom: '1px solid #1e293b', paddingBottom: '8px', flexShrink: 0 }}>
@@ -761,15 +696,6 @@ const IcetelProgramaVista = () => {
           >
             Novedades ({novedades.length})
           </button>
-          {/*
-            CAMBIO: se eliminó el cartel rojo que mostraba el texto crudo del
-            error ("Error: Unexpected token '<' ..."). Este botón ahora solo
-            cambia de color tras varios fallos SEGUIDOS (ver
-            FALLOS_CONSECUTIVOS_PARA_AVISAR), nunca con un fallo aislado, y
-            nunca muestra el detalle técnico del error — solo indica que
-            conviene revisar la conexión. El detalle técnico completo sigue
-            disponible en la consola del navegador (F12) para depuración.
-          */}
           <button
             onClick={() => window.location.reload()}
             style={{ backgroundColor: '#0f172a', padding: '6px 10px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '11px', fontWeight: 'bold', color: error ? '#f59e0b' : '#10b981', cursor: 'pointer' }}
@@ -779,7 +705,7 @@ const IcetelProgramaVista = () => {
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL: columna apilada en pantallas chicas, fila en TV */}
+      {/* CONTENEDOR PRINCIPAL */}
       <div style={{
         display: 'flex',
         flexDirection: esPantallaGrande ? 'row' : 'column',
