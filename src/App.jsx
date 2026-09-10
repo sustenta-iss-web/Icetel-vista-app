@@ -594,6 +594,8 @@ const IcetelProgramaVista = () => {
   const intervaloRef = useRef(null);
   const timeoutDatosRef = useRef(null);
   const fallosSeguidosRef = useRef(0);
+  const touchInicioX = useRef(null);
+  const touchInicioY = useRef(null);
   const { columnas, esPantallaGrande } = useResponsiveLayout();
   const margenInferior = esPantallaGrande ? 18 : 14;
   const [climaRef, alturaDisponibleClima] = useAlturaDisponible(margenInferior);
@@ -719,6 +721,56 @@ const IcetelProgramaVista = () => {
     return () => window.removeEventListener('keydown', manejarTeclado);
   }, [totalPaginas, reiniciarRotacion]);
 
+  // NUEVO: cambio de panel al deslizar (swipe) con el dedo, pensado para
+  // celulares en portrait donde no hay teclado físico. Escucha touchstart
+  // y touchend sobre el contenedor principal.
+  useEffect(() => {
+    const UMBRAL_SWIPE_PX = 50; // distancia mínima horizontal para contar como swipe
+    const TOLERANCIA_VERTICAL_PX = 60; // si se mueve mucho en vertical, se asume scroll, no swipe
+
+    const manejarTouchStart = (ev) => {
+      if (totalPaginas <= 1) return;
+      const touch = ev.touches[0];
+      touchInicioX.current = touch.clientX;
+      touchInicioY.current = touch.clientY;
+    };
+
+    const manejarTouchEnd = (ev) => {
+      if (totalPaginas <= 1 || touchInicioX.current === null) return;
+      const touch = ev.changedTouches[0];
+      const deltaX = touch.clientX - touchInicioX.current;
+      const deltaY = touch.clientY - touchInicioY.current;
+
+      touchInicioX.current = null;
+      touchInicioY.current = null;
+
+      // Si el movimiento vertical fue mayor que el umbral, probablemente el
+      // usuario estaba haciendo scroll, no un swipe de cambio de panel.
+      if (Math.abs(deltaY) > TOLERANCIA_VERTICAL_PX) return;
+      if (Math.abs(deltaX) < UMBRAL_SWIPE_PX) return;
+
+      if (deltaX < 0) {
+        // swipe hacia la izquierda -> siguiente panel
+        setPaginaActual((p) => (p + 1) % totalPaginas);
+      } else {
+        // swipe hacia la derecha -> panel anterior
+        setPaginaActual((p) => (p - 1 + totalPaginas) % totalPaginas);
+      }
+      reiniciarRotacion();
+    };
+
+    const contenedor = document.getElementById('icetel-contenedor-principal');
+    if (!contenedor) return;
+
+    contenedor.addEventListener('touchstart', manejarTouchStart, { passive: true });
+    contenedor.addEventListener('touchend', manejarTouchEnd, { passive: true });
+
+    return () => {
+      contenedor.removeEventListener('touchstart', manejarTouchStart);
+      contenedor.removeEventListener('touchend', manejarTouchEnd);
+    };
+  }, [totalPaginas, reiniciarRotacion]);
+
   const indiceInicio = paginaActual * ITEMS_POR_PAGINA;
   const indiceFin = indiceInicio + ITEMS_POR_PAGINA;
   const climaEnPantalla = datosClima.slice(indiceInicio, indiceFin);
@@ -741,7 +793,7 @@ const IcetelProgramaVista = () => {
   const altoTarjetaEnergia = calcularAltoTarjetaPx(alturaDisponibleEnergia);
 
   return (
-    <div style={{
+    <div id="icetel-contenedor-principal" style={{
       width: '100%',
       height: '100dvh',
       overflowY: 'auto',
