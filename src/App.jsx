@@ -10,11 +10,14 @@ const FALLOS_CONSECUTIVOS_PARA_AVISAR = 3;
 const STORAGE_KEY = 'icetel_cache_datos_v1';
 
 // --- COLORES DE ESTADO (umbrales) ---
-const COLOR_PREOCUPANTE = '#cb2330';
-const COLOR_KWF_OK = '#417C81';
-const COLOR_ENERGIA_OK = '#6081DC';
-const COLOR_CARGA_TI = '#BE837E';
-const COLOR_UPS_KW = '#9F7E23';
+// Paleta "radioactiva": saturación y luminosidad al máximo para que el
+// contraste se note incluso en TVs viejas / paneles LCD desgastados que
+// desaturan y oscurecen los tonos intermedios.
+const COLOR_PREOCUPANTE = '#FF0044';
+const COLOR_KWF_OK = '#00FF66';
+const COLOR_ENERGIA_OK = '#00B3FF';
+const COLOR_CARGA_TI = '#FF6A00';
+const COLOR_UPS_KW = '#FFD500';
 const UMBRAL_KWF = 50;
 const UMBRAL_CARGA_UPS = 80;
 const UMBRAL_TEMP = 28;
@@ -394,11 +397,13 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           width: '100%', height: 'calc(50% - 3px)', position: 'relative',
           display: 'flex', borderRadius: '8px', overflow: 'hidden',
           border: `1px solid ${kwfCritico ? '#ff4d5e' : '#1e293b'}`,
-          transition: 'border-color 0.4s ease',
+          boxShadow: kwfCritico ? `0 0 14px 2px ${hexA(COLOR_PREOCUPANTE, 0.75)}` : `0 0 10px 1px ${hexA(colorKwf || COLOR_CARGA_TI, 0.35)}`,
+          transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
           minHeight: 0, boxSizing: 'border-box'
         }}>
           {/* Fondo plano (sin transparencia) para que se note bien en pantallas
-              antiguas: cada mitad usa directamente el color de estado. */}
+              antiguas: cada mitad usa directamente el color de estado, a
+              máxima saturación, para que el TV lo reproduzca con fuerza. */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', pointerEvents: 'none' }}>
             <div style={{
               width: `${anchoKwfPct}%`, height: '100%',
@@ -511,14 +516,16 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
       <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          style={{ width: 'calc(50% - 3px)', marginRight: '6px', backgroundColor: COLOR_UPS_KW, border: `1px solid ${COLOR_UPS_KW}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
+          style={{ width: 'calc(50% - 3px)', marginRight: '6px', backgroundColor: COLOR_UPS_KW, border: `1px solid ${COLOR_UPS_KW}`, boxShadow: `0 0 10px 1px ${hexA(COLOR_UPS_KW, 0.45)}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
           <span style={{ fontSize: '9px', fontWeight: 'bold', color: TEXTO_UPS_KW, textTransform: 'uppercase', opacity: 0.85 }}>KW</span>
           <span style={{ fontSize: '15px', fontWeight: 'bold', color: TEXTO_UPS_KW }}>{fmt(datos.kvaTermino)}</span>
         </button>
 
         {/* % CARGA UPS - fondo plano (sin transparencia) con el color de
-            estado; el parpadeo a rojo lo hace la clase .efecto-baliza. */}
+            estado a máxima saturación; el parpadeo a rojo lo hace la clase
+            .efecto-baliza, reforzado con un halo (box-shadow) del mismo
+            color para que se note más en TVs viejas. */}
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           className={claseUps}
@@ -526,6 +533,7 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
             width: 'calc(50% - 3px)',
             backgroundColor: colorCarga || '#022c22',
             border: `1px solid ${colorCarga || '#064e3b'}`,
+            boxShadow: colorCarga ? `0 0 12px 1px ${hexA(colorCarga, cargaCritica ? 0.8 : 0.45)}` : 'none',
             borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box'
           }}
         >
@@ -749,15 +757,17 @@ const IcetelProgramaVista = () => {
       {/* FIX PARPADEO: animación CSS pura. Corre en el compositor del
           navegador, no depende del hilo principal de JS ni de setInterval,
           así que no la throttlea el navegador en TVs/Android viejos cuando
-          la pestaña está en segundo plano o sin interacción. */}
+          la pestaña está en segundo plano o sin interacción. El blink ahora
+          también pulsa el halo (box-shadow) para que se note en TVs con
+          mal contraste. */}
       <style>
         {`
           @keyframes parpadeo-baliza {
-            0%, 100% { background-color: ${COLOR_PREOCUPANTE}; border-color: #ff4d5e; }
-            50% { background-color: transparent; border-color: inherit; }
+            0%, 100% { background-color: ${COLOR_PREOCUPANTE}; border-color: #ff4d5e; box-shadow: 0 0 18px 4px ${hexA(COLOR_PREOCUPANTE, 0.9)}; }
+            50% { background-color: transparent; border-color: inherit; box-shadow: 0 0 2px 0 ${hexA(COLOR_PREOCUPANTE, 0.2)}; }
           }
           .efecto-baliza {
-            animation: parpadeo-baliza 1.6s infinite;
+            animation: parpadeo-baliza 1.2s infinite;
           }
         `}
       </style>
