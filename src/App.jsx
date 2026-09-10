@@ -11,9 +11,10 @@ const STORAGE_KEY = 'icetel_cache_datos_v1';
 
 // --- COLORES DE ESTADO (umbrales) ---
 const COLOR_PREOCUPANTE = '#cb2330';
-const COLOR_KWF_OK = '#e3f565';
-const COLOR_ENERGIA_OK = '#32817c';
-const COLOR_CARGA_TI = '#c2410c'; 
+const COLOR_KWF_OK = '#417C81';
+const COLOR_ENERGIA_OK = '#6081DC';
+const COLOR_CARGA_TI = '#BE837E';
+const COLOR_UPS_KW = '#9F7E23';
 const UMBRAL_KWF = 50;
 const UMBRAL_CARGA_UPS = 80;
 const UMBRAL_TEMP = 28;
@@ -25,6 +26,20 @@ const hexA = (hex, alpha) => {
   const b = parseInt(h.substring(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
+
+// Devuelve un color de texto (blanco casi puro o gris muy oscuro) que
+// contrasta bien sobre un fondo plano `hex`, usando la fórmula de brillo YIQ.
+const getContrastText = (hex) => {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 140 ? '#0f172a' : '#f8fafc';
+};
+
+const TEXTO_CARGA_TI = getContrastText(COLOR_CARGA_TI);
+const TEXTO_UPS_KW = getContrastText(COLOR_UPS_KW);
 
 const fmt = (valor, sufijo = '') => (valor === null || valor === undefined || valor === '' || isNaN(valor) ? '—' : `${valor}${sufijo}`);
 
@@ -325,6 +340,8 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
   const hayDatoKwf = pctKwf !== undefined && pctKwf !== null;
   const kwfCritico = hayDatoKwf && pctKwf <= UMBRAL_KWF;
   const colorKwf = hayDatoKwf ? (kwfCritico ? COLOR_PREOCUPANTE : COLOR_KWF_OK) : null;
+  // Color plano (sin transparencia) y su texto de contraste correspondiente
+  const textoKwf = colorKwf ? getContrastText(colorKwf) : '#c084fc';
 
   const temp = datos.temperatura;
   const hayDatoTemp = temp !== undefined && temp !== null;
@@ -380,16 +397,18 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
           transition: 'border-color 0.4s ease',
           minHeight: 0, boxSizing: 'border-box'
         }}>
+          {/* Fondo plano (sin transparencia) para que se note bien en pantallas
+              antiguas: cada mitad usa directamente el color de estado. */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', pointerEvents: 'none' }}>
             <div style={{
               width: `${anchoKwfPct}%`, height: '100%',
               transition: 'width 0.6s ease, background-color 0.4s ease',
-              backgroundColor: colorKwf ? hexA(colorKwf, 0.22) : 'rgba(59, 7, 100, 0.35)'
+              backgroundColor: colorKwf || '#3b0764'
             }} />
             <div style={{
               width: `${anchoCargaTiPct}%`, height: '100%',
               transition: 'width 0.6s ease',
-              backgroundColor: hexA(COLOR_CARGA_TI, 0.3)
+              backgroundColor: COLOR_CARGA_TI
             }} />
           </div>
 
@@ -412,9 +431,9 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
               cursor: 'pointer', minWidth: 0, boxSizing: 'border-box'
             }}
           >
-            <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>KWF</span>
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: colorKwf || '#c084fc', whiteSpace: 'nowrap' }}>{fmt(datos.kw)}</span>
-            {hayDatoKwf && <span style={{ fontSize: '11px', fontWeight: 'bold', color: colorKwf ? hexA(colorKwf, 0.9) : '#c084fc', whiteSpace: 'nowrap' }}>{fmtPorcentaje(pctKwf)}</span>}
+            <span style={{ fontSize: '8px', fontWeight: 'bold', color: textoKwf, textTransform: 'uppercase', whiteSpace: 'nowrap', opacity: 0.85 }}>KWF</span>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: textoKwf, whiteSpace: 'nowrap' }}>{fmt(datos.kw)}</span>
+            {hayDatoKwf && <span style={{ fontSize: '11px', fontWeight: 'bold', color: textoKwf, whiteSpace: 'nowrap' }}>{fmtPorcentaje(pctKwf)}</span>}
           </button>
 
           <button
@@ -426,9 +445,9 @@ const TarjetaClima = ({ datos, onClickMetrica }) => {
               cursor: 'pointer', minWidth: 0, boxSizing: 'border-box'
             }}
           >
-            <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Carga TI</span>
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fb923c', whiteSpace: 'nowrap' }}>{fmt(datos.cargaTiKw)}</span>
-            {hayDatoCargaTi && <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fed7aa', whiteSpace: 'nowrap' }}>{fmtPorcentaje(datos.cargaTi)}</span>}
+            <span style={{ fontSize: '8px', fontWeight: 'bold', color: TEXTO_CARGA_TI, textTransform: 'uppercase', whiteSpace: 'nowrap', opacity: 0.85 }}>Carga TI</span>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: TEXTO_CARGA_TI, whiteSpace: 'nowrap' }}>{fmt(datos.cargaTiKw)}</span>
+            {hayDatoCargaTi && <span style={{ fontSize: '11px', fontWeight: 'bold', color: TEXTO_CARGA_TI, whiteSpace: 'nowrap' }}>{fmtPorcentaje(datos.cargaTi)}</span>}
           </button>
         </div>
       </div>
@@ -475,6 +494,8 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
   const hayDatoCarga = pctCarga !== undefined && pctCarga !== null;
   const cargaCritica = hayDatoCarga && pctCarga >= UMBRAL_CARGA_UPS;
   const colorCarga = hayDatoCarga ? (cargaCritica ? COLOR_PREOCUPANTE : COLOR_ENERGIA_OK) : null;
+  // Color plano (sin transparencia) y su texto de contraste correspondiente
+  const textoCarga = colorCarga ? getContrastText(colorCarga) : '#34d399';
 
   const claseUps = cargaCritica ? 'efecto-baliza' : '';
 
@@ -490,26 +511,26 @@ const TarjetaEnergia = ({ datos, onClickMetrica }) => {
       <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minHeight: 0, marginTop: '6px' }}>
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
-          style={{ width: 'calc(50% - 3px)', marginRight: '6px', backgroundColor: 'rgba(49, 46, 129, 0.3)', border: '1px solid rgba(67, 56, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
+          style={{ width: 'calc(50% - 3px)', marginRight: '6px', backgroundColor: COLOR_UPS_KW, border: `1px solid ${COLOR_UPS_KW}`, borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box' }}
         >
-          <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>KW</span>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#818cf8' }}>{fmt(datos.kvaTermino)}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: TEXTO_UPS_KW, textTransform: 'uppercase', opacity: 0.85 }}>KW</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: TEXTO_UPS_KW }}>{fmt(datos.kvaTermino)}</span>
         </button>
 
-        {/* % CARGA UPS - fondo/borde base siempre "no crítico"; el parpadeo
-            a rojo lo hace la clase .efecto-baliza cuando corresponde. */}
+        {/* % CARGA UPS - fondo plano (sin transparencia) con el color de
+            estado; el parpadeo a rojo lo hace la clase .efecto-baliza. */}
         <button
           onClick={() => onClickMetrica(datos, 'energia')}
           className={claseUps}
           style={{
             width: 'calc(50% - 3px)',
-            backgroundColor: colorCarga ? hexA(colorCarga, 0.18) : 'rgba(2, 44, 34, 0.3)',
-            border: `1px solid ${colorCarga ? hexA(colorCarga, 0.55) : 'rgba(6, 78, 59, 0.5)'}`,
+            backgroundColor: colorCarga || '#022c22',
+            border: `1px solid ${colorCarga || '#064e3b'}`,
             borderRadius: '8px', padding: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: 0, boxSizing: 'border-box'
           }}
         >
-          <span style={{ fontSize: '9px', fontWeight: 'bold', color: cargaCritica ? '#fff' : '#64748b', textTransform: 'uppercase' }}>% Carga</span>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', color: cargaCritica ? '#fff' : (colorCarga || '#34d399') }}>{fmtPorcentaje(pctCarga)}</span>
+          <span style={{ fontSize: '9px', fontWeight: 'bold', color: textoCarga, textTransform: 'uppercase', opacity: 0.85 }}>% Carga</span>
+          <span style={{ fontSize: '15px', fontWeight: 'bold', color: textoCarga }}>{fmtPorcentaje(pctCarga)}</span>
         </button>
       </div>
     </div>
